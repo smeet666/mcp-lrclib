@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.smeet666/mcp-lrclib",
+  "description": "Search tracks on LRCLIB and fetch plain or time-synced (LRC) lyrics. No API key.",
+  "repository": {
+    "url": "https://github.com/smeet666/mcp-lrclib",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "mcp-lrclib",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "LRCLIB_USER_AGENT",
+          "description": "Override the User-Agent sent to LRCLIB.",
+          "isRequired": false
+        },
+        {
+          "name": "LRCLIB_MIN_INTERVAL_MS",
+          "description": "Minimum milliseconds between requests. Default 500, floor 200.",
+          "isRequired": false
+        },
+        {
+          "name": "LRCLIB_LOG_LEVEL",
+          "description": "silent, error, info or debug. Default error.",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

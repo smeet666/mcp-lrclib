@@ -1,0 +1,102 @@
+/**
+ * High-level LRCLIB client.
+ *
+ * This module knows nothing about MCP, which keeps it testable against plain
+ * objects and usable as a library through the `./client` export.
+ */
+
+import type { Config, Logger } from "../config.js";
+import { createLogger, loadConfig } from "../config.js";
+import { trackNotFound } from "../errors.js";
+import type { TrackMeta, TrackQuery, TrackWithLyrics } from "../types.js";
+import { TtlLruCache } from "./cache.js";
+import { fetchJson } from "./http.js";
+import { RateLimiter } from "./rateLimiter.js";
+import type { SearchParams } from "./urls.js";
+import { buildGetByIdUrl, buildGetUrl, buildSearchUrl } from "./urls.js";
+import { toSearchResults, toTrackWithLyrics } from "./responses.js";
+
+export interface LrclibClientOptions {
+  config?: Config;
+  logger?: Logger;
+  fetchImpl?: typeof fetch;
+}
+
+export interface Outcome<T> {
+  data: T;
+  /** True when served from the in-memory cache rather than the network. */
+  cached: boolean;
+}
+
+export class LrclibClient {
+  private readonly config: Config;
+  private readonly logger: Logger;
+  private readonly limiter: RateLimiter;
+  private readonly cache: TtlLruCache<unknown>;
+  private readonly fetchImpl: typeof fetch | undefined;
+
+  constructor(options: LrclibClientOptions = {}) {
+    this.config = options.config ?? loadConfig();
+    this.logger = options.logger ?? createLogger(this.config.logLevel);
+    this.limiter = new RateLimiter({ minIntervalMs: this.config.minIntervalMs });
+    this.cache = new TtlLruCache<unknown>(this.config.cacheMaxEntries, this.config.cacheTtlMs);
+    this.fetchImpl = options.fetchImpl;
+  }
+
+  /**
+   * Search by free text, or by the structured track/artist/album trio.
+   *
+   * Returns metadata only. The lyrics LRCLIB sends alongside each row are
+   * dropped here rather than at the tool layer, so no caller can accidentally
+   * hand a 29,000-token payload to a model.
+   */
+  async search(params: SearchParams): Promise<Outcome<TrackMeta[]>> {
+    const url = buildSearchUrl(params);
+    const { body, cached } = await this.fetchCached(url);
+    return { data: toSearchResults(body, url), cached };
+  }
+
+  /** Exact-match lookup by artist and title, with the full lyrics. */
+  async get(query: TrackQuery): Promise<Outcome<TrackWithLyrics>> {
+    const url = buildGetUrl({
+      artistName: query.artistName,
+      trackName: query.trackName,
+      ...(query.albumName ? { albumName: query.albumName } : {}),
+      ...(query.durationSeconds !== undefined ? { durationSeconds: query.durationSeconds } : {}),
+    });
+    const { body, status, cached } = await this.fetchCached(url);
+    if (status === 404) {
+      throw trackNotFound(url, `"${query.trackName}" by "${query.artistName}"`);
+    }
+    return { data: toTrackWithLyrics(body as object, url), cached };
+  }
+
+  /** Lookup by LRCLIB id, with the full lyrics. */
+  async getById(id: number): Promise<Outcome<TrackWithLyrics>> {
+    const url = buildGetByIdUrl(id);
+    const { body, status, cached } = await this.fetchCached(url);
+    if (status === 404) throw trackNotFound(url, `id ${id}`);
+    return { data: toTrackWithLyrics(body as object, url), cached };
+  }
+
+  private async fetchCached(
+    url: string,
+  ): Promise<{ body: unknown; status: number; cached: boolean }> {
+    const hit = this.cache.get(url);
+    if (hit !== undefined) {
+      this.logger.debug(`cache hit ${url}`);
+      return { body: hit, status: 200, cached: true };
+    }
+
+    const { status, body } = await fetchJson(url, {
+      config: this.config,
+      limiter: this.limiter,
+      logger: this.logger,
+      ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
+    });
+
+    // A 404 is a real answer, but caching it would hide a track added later.
+    if (status === 200 && body !== undefined) this.cache.set(url, body);
+    return { status, body, cached: false };
+  }
+}
