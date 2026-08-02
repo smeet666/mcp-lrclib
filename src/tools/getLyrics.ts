@@ -173,11 +173,17 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       wantsSynced && track.syncedLyrics ? track.syncedLyrics : (track.plainLyrics ?? "");
     const slice = sliceAtLineBoundary(primary, args.offset, args.max_chars);
 
-    const allLines = wantsSynced && track.syncedLyrics ? parseLrc(track.syncedLyrics) : null;
+    // Timed lines are parsed from the returned slice, not from the whole song.
+    // Parsing the full text would carry every line of the lyrics regardless of
+    // max_chars, so the pagination budget would bound the raw text while the
+    // response still grew with the length of the track.
+    const allLines = wantsSynced && track.syncedLyrics ? parseLrc(slice.text) : null;
     const syncedLines = allLines ? allLines.slice(0, MAX_SYNCED_LINES) : null;
     const syncedTruncated = allLines !== null && allLines.length > MAX_SYNCED_LINES;
     if (syncedTruncated) {
-      notes.push(`Timed lines are capped at ${MAX_SYNCED_LINES}; the raw LRC text is complete.`);
+      notes.push(
+        `Timed lines are capped at ${MAX_SYNCED_LINES} per call; continue with offset=${slice.nextOffset ?? 0}.`,
+      );
     }
 
     const structured = {

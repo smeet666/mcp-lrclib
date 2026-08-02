@@ -258,6 +258,73 @@ describe("get_lyrics", () => {
     expect(JSON.stringify(lines[0])).toMatch(/12/);
   });
 
+  it("bounds the parsed lines by max_chars, not by the length of the song", async () => {
+    // Parsing the whole LRC block would carry every line of the track no matter
+    // what max_chars said, so the response would keep growing with the song
+    // while the raw text stayed bounded. The timed lines must follow the slice.
+    const client = await connect(fixtureRouter({ exact: both }).impl);
+
+    const short = await call(client, "get_lyrics", {
+      artist_name: "Placeholder Artist 1",
+      track_name: "Placeholder Track 1",
+      format: "synced",
+      max_chars: 200,
+    });
+    const shortBody = short.structuredContent as Record<string, unknown>;
+    const shortLines = shortBody.synced_lines as unknown[];
+
+    const full = await call(client, "get_lyrics", {
+      artist_name: "Placeholder Artist 1",
+      track_name: "Placeholder Track 1",
+      format: "synced",
+      max_chars: 20_000,
+    });
+    const fullBody = full.structuredContent as Record<string, unknown>;
+    const fullLines = fullBody.synced_lines as unknown[];
+
+    expect(shortBody.truncated).toBe(true);
+    expect(fullBody.truncated).toBe(false);
+    expect(shortLines.length).toBeGreaterThan(0);
+    expect(shortLines.length).toBeLessThan(fullLines.length);
+
+    // Every timed line must come from the slice that was actually returned.
+    const returned = shortBody.synced_lyrics as string;
+    for (const line of shortLines as { text: string }[]) {
+      if (line.text !== "") expect(returned).toContain(line.text);
+    }
+  });
+
+  it("reassembles the full timed lines across paged calls", async () => {
+    const client = await connect(fixtureRouter({ exact: both }).impl);
+    const collected: string[] = [];
+    let offset: number | null = 0;
+
+    while (offset !== null) {
+      const page: Awaited<ReturnType<typeof call>> = await call(client, "get_lyrics", {
+        artist_name: "Placeholder Artist 1",
+        track_name: "Placeholder Track 1",
+        format: "synced",
+        max_chars: 200,
+        offset,
+      });
+      const body = page.structuredContent as Record<string, unknown>;
+      for (const line of body.synced_lines as { text: string }[]) collected.push(line.text);
+      offset = body.next_offset as number | null;
+    }
+
+    const everything = await call(client, "get_lyrics", {
+      artist_name: "Placeholder Artist 1",
+      track_name: "Placeholder Track 1",
+      format: "synced",
+      max_chars: 20_000,
+    });
+    const allLines = (
+      (everything.structuredContent as Record<string, unknown>).synced_lines as { text: string }[]
+    ).map((line) => line.text);
+
+    expect(collected).toEqual(allLines);
+  });
+
   it("returns both bodies when asked for both", async () => {
     const client = await connect(fixtureRouter({ exact: both }).impl);
     const result = await call(client, "get_lyrics", {
