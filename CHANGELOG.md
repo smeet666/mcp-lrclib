@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- Refresh the packaged README, which now carries one-click install links for
+  Cursor and VS Code and a link to the entry in the official MCP registry.
+- Keep LICENSE to the plain MIT text. License detectors match the file against
+  the canonical template, so the trailing scope note made the package read as
+  unlicensed; that note lives in the README.
+
 ## 1.0.0
 
 First stable release. The tool contracts are settled: tool names, their
