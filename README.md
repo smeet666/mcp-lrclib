@@ -3,6 +3,7 @@
 [![npm](https://img.shields.io/npm/v/mcp-lrclib.svg)](https://www.npmjs.com/package/mcp-lrclib)
 [![CI](https://github.com/smeet666/mcp-lrclib/actions/workflows/ci.yml/badge.svg)](https://github.com/smeet666/mcp-lrclib/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/mcp-lrclib.svg)](./LICENSE)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-listed-6E56CF)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.smeet666/mcp-lrclib)
 
 An [MCP](https://modelcontextprotocol.io) server for [LRCLIB](https://lrclib.net).
 Search tracks and read their lyrics, including **time-synced (LRC) lyrics** with a
@@ -13,6 +14,11 @@ _(Version française plus bas / [French version below](#mcp-lrclib-français))_
 ---
 
 ## Quickstart
+
+**One-click install**
+
+[![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=lrclib&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1scmNsaWIiXX0%3D)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=lrclib&config=%7B%22name%22%3A%22lrclib%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22mcp-lrclib%22%5D%7D)
 
 **Claude Code**
 
@@ -148,6 +154,11 @@ Cherchez des morceaux et lisez leurs paroles, y compris les **paroles synchronis
 (LRC)**, horodatées ligne par ligne. **Sans clé d'API, sans compte, sans configuration.**
 
 ## Démarrage rapide
+
+**Installation en un clic**
+
+[![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=lrclib&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIm1jcC1scmNsaWIiXX0%3D)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=lrclib&config=%7B%22name%22%3A%22lrclib%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22mcp-lrclib%22%5D%7D)
 
 **Claude Code**
 
