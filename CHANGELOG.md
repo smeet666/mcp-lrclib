@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.2
+
+- Claim a pacing slot per request instead of per task. A task runs a whole
+  retry chain, so stamping only its start let the next task follow the chain's
+  last request with no gap, below the interval the configuration promises.
+- Honour `Retry-After` when LRCLIB sends one, in both its seconds and its
+  HTTP-date form, instead of guessing a delay. The wait is spent between
+  attempts rather than after the last one, where nobody would use it.
+- Treat HTTP 403 as a refusal to back off from. It was reported as a plain
+  error, so the client kept its pace in the one situation where slowing down is
+  the remedy.
+- Bound the pacing wait by the interval. A clock stepped backwards, by NTP or a
+  resumed virtual machine, made the next request wait for the size of the step,
+  and the queue is serial so every pending call waited behind it.
+- Enforce the pacing floor and the identifying User-Agent in the client rather
+  than only when reading the environment. The client is published through the
+  `./client` export and accepts a caller-built config, so both promises were
+  previously optional for anyone importing the library.
+
 ## 1.0.1
 
 - Refresh the packaged README, which now carries one-click install links for

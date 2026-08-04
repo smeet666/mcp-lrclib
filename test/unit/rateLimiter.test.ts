@@ -22,6 +22,7 @@ describe("RateLimiter", () => {
     const starts: number[] = [];
     const record = () =>
       limiter.schedule(async () => {
+        await limiter.beforeRequest();
         starts.push(Date.now());
       });
     const all = Promise.all([record(), record(), record()]);
@@ -37,6 +38,7 @@ describe("RateLimiter", () => {
     const order: string[] = [];
     const tasks = ["a", "b", "c", "d"].map((name) =>
       limiter.schedule(async () => {
+        await limiter.beforeRequest();
         order.push(name);
         return name;
       }),
@@ -106,11 +108,13 @@ describe("RateLimiter", () => {
     const starts: number[] = [];
     const failing = limiter
       .schedule(async () => {
+        await limiter.beforeRequest();
         starts.push(Date.now());
         throw new Error("boom");
       })
       .catch(() => undefined);
     const after = limiter.schedule(async () => {
+      await limiter.beforeRequest();
       starts.push(Date.now());
     });
     await vi.advanceTimersByTimeAsync(5000);
@@ -158,12 +162,14 @@ describe("RateLimiter", () => {
       const limiter = new RateLimiter({ minIntervalMs: 200 });
       const starts: number[] = [];
       const first = limiter.schedule(async () => {
+        await limiter.beforeRequest();
         starts.push(Date.now());
       });
       await vi.advanceTimersByTimeAsync(0);
       await first;
       limiter.penalize();
       const second = limiter.schedule(async () => {
+        await limiter.beforeRequest();
         starts.push(Date.now());
       });
       await vi.advanceTimersByTimeAsync(10_000);

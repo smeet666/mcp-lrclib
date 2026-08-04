@@ -39,17 +39,25 @@ export class RateLimiter {
 
   /** Queue a task. Tasks run in call order, one at a time. */
   schedule<T>(task: () => Promise<T>): Promise<T> {
-    const run = this.tail.then(async () => {
-      await this.waitForSlot();
-      this.lastStart = Date.now();
-      return task();
-    });
+    const run = this.tail.then(async () => task());
     // The queue must keep draining even when a task rejects.
     this.tail = run.then(
       () => undefined,
       () => undefined,
     );
     return run;
+  }
+
+  /**
+   * Wait for this request's slot, then claim it.
+   *
+   * Called once per upstream request rather than once per task, because a task
+   * runs a whole retry chain: stamping only its start would let the next task
+   * follow the chain's last request with no gap at all.
+   */
+  async beforeRequest(): Promise<void> {
+    await this.waitForSlot();
+    this.lastStart = Date.now();
   }
 
   /** Called after the site signals it is under load. */
@@ -66,7 +74,10 @@ export class RateLimiter {
   private async waitForSlot(): Promise<void> {
     if (this.intervalMs === 0 || this.lastStart === 0) return;
     const elapsed = Date.now() - this.lastStart;
-    const remaining = this.intervalMs - elapsed;
+    // Clamped to the interval: a clock stepped backwards, by NTP or a resumed
+    // virtual machine, would otherwise make this wait for the size of the step,
+    // and the queue is serial so every pending request would wait behind it.
+    const remaining = Math.min(this.intervalMs, this.intervalMs - elapsed);
     if (remaining > 0) await sleep(remaining);
   }
 }
