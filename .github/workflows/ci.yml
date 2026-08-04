@@ -20,6 +20,6 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       # Unit tests only. The live suite is opt-in and would put pointless load
-      # on lyrics.com from shared runners.
+      # on LRCLIB, a free service, from shared runners.
       - run: npm test
       - run: npm run build

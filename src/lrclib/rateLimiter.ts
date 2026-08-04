@@ -1,11 +1,12 @@
 /**
  * Serial request queue with an adaptive minimum interval.
  *
- * lyrics.com tolerates a steady trickle but stops answering after a short burst,
- * so requests are run one at a time with a floor on the gap between starts.
- * When the site does push back, the interval doubles and then decays back down
- * as requests succeed, which recovers faster than a fixed delay and behaves
- * better than hammering at a constant rate.
+ * LRCLIB publishes no rate limit and provides the service free of charge, so the
+ * pacing here is self-imposed politeness rather than a published contract:
+ * requests run one at a time with a floor on the gap between starts. When the
+ * service does push back with a 429, the interval doubles and then decays back
+ * down as requests succeed, which recovers faster than a fixed delay and behaves
+ * better than a constant rate.
  */
 
 export interface RateLimiterOptions {

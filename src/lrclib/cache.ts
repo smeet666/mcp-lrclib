@@ -2,8 +2,8 @@
  * In-memory TTL + LRU cache.
  *
  * Nothing is written to disk. The cache exists so that repeated questions about
- * the same song inside one conversation do not hit lyrics.com again, not to
- * build a local copy of the site.
+ * the same track inside one conversation do not hit LRCLIB again, not to build a
+ * local copy of the database.
  *
  * A Map iterates in insertion order, so re-inserting on every hit is enough to
  * make the first key the least recently used one.
