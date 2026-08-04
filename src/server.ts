@@ -6,6 +6,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import type { Config, Logger } from "./config.js";
 import { createLogger, loadConfig } from "./config.js";
 import { LrclibClient } from "./lrclib/client.js";
@@ -72,8 +73,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Search tracks",
       description: searchTracksDescription,
-      inputSchema: searchTracksInputShape,
-      outputSchema: searchTracksOutputShape,
+      inputSchema: z.object(searchTracksInputShape),
+      outputSchema: z.object(searchTracksOutputShape),
       annotations: READ_ONLY,
     },
     async (args) => runSearchTracks(client, args as SearchTracksArgs),
@@ -84,8 +85,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Get lyrics",
       description: getLyricsDescription,
-      inputSchema: getLyricsInputShape,
-      outputSchema: getLyricsOutputShape,
+      inputSchema: z.object(getLyricsInputShape),
+      outputSchema: z.object(getLyricsOutputShape),
       annotations: READ_ONLY,
     },
     async (args) => runGetLyrics(client, args as GetLyricsArgs),
@@ -96,8 +97,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Get track metadata",
       description: getTrackDescription,
-      inputSchema: getTrackInputShape,
-      outputSchema: getTrackOutputShape,
+      inputSchema: z.object(getTrackInputShape),
+      outputSchema: z.object(getTrackOutputShape),
       annotations: READ_ONLY,
     },
     async (args) => runGetTrack(client, args as GetTrackArgs),
