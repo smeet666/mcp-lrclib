@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Cache a response only once it has been read successfully. The cache stored
+  the raw response before parsing, so a page LRCLIB served but this client could
+  not understand stayed pinned for the cache lifetime and was replayed on every
+  retry: the tool could not recover even after the site was healthy again. It
+  now holds the parsed result, which also keeps the raw payload out of memory.
+
 ## 1.0.2
 
 - Claim a pacing slot per request instead of per task. A task runs a whole

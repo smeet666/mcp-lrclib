@@ -80,8 +80,7 @@ export class LrclibClient {
    */
   async search(params: SearchParams): Promise<Outcome<TrackMeta[]>> {
     const url = buildSearchUrl(params);
-    const { body, cached } = await this.fetchCached(url);
-    return { data: toSearchResults(body, url), cached };
+    return this.fetchParsed(url, (body) => toSearchResults(body, url));
   }
 
   /** Exact-match lookup by artist and title, with the full lyrics. */
@@ -92,28 +91,41 @@ export class LrclibClient {
       ...(query.albumName ? { albumName: query.albumName } : {}),
       ...(query.durationSeconds !== undefined ? { durationSeconds: query.durationSeconds } : {}),
     });
-    const { body, status, cached } = await this.fetchCached(url);
-    if (status === 404) {
-      throw trackNotFound(url, `"${query.trackName}" by "${query.artistName}"`);
-    }
-    return { data: toTrackWithLyrics(body as object, url), cached };
+    return this.fetchParsed(
+      url,
+      (body) => toTrackWithLyrics(body as object, url),
+      () => trackNotFound(url, `"${query.trackName}" by "${query.artistName}"`),
+    );
   }
 
   /** Lookup by LRCLIB id, with the full lyrics. */
   async getById(id: number): Promise<Outcome<TrackWithLyrics>> {
     const url = buildGetByIdUrl(id);
-    const { body, status, cached } = await this.fetchCached(url);
-    if (status === 404) throw trackNotFound(url, `id ${id}`);
-    return { data: toTrackWithLyrics(body as object, url), cached };
+    return this.fetchParsed(
+      url,
+      (body) => toTrackWithLyrics(body as object, url),
+      () => trackNotFound(url, `id ${id}`),
+    );
   }
 
-  private async fetchCached(
+  /**
+   * Fetch, parse, then cache. In that order: a response that could not be read
+   * is never stored, so a bad minute at LRCLIB cannot be replayed from memory
+   * for the rest of the cache lifetime, leaving the tool unable to recover
+   * after the service comes back.
+   *
+   * The cached value is the parsed result rather than the raw body, which also
+   * keeps the lyrics LRCLIB embeds in every search row out of memory.
+   */
+  private async fetchParsed<T>(
     url: string,
-  ): Promise<{ body: unknown; status: number; cached: boolean }> {
+    parse: (body: unknown) => T,
+    onMissing?: () => Error,
+  ): Promise<Outcome<T>> {
     const hit = this.cache.get(url);
     if (hit !== undefined) {
       this.logger.debug(`cache hit ${url}`);
-      return { body: hit, status: 200, cached: true };
+      return { data: hit as T, cached: true };
     }
 
     const { status, body } = await fetchJson(url, {
@@ -123,8 +135,12 @@ export class LrclibClient {
       ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
     });
 
-    // A 404 is a real answer, but caching it would hide a track added later.
-    if (status === 200 && body !== undefined) this.cache.set(url, body);
-    return { status, body, cached: false };
+    // A 404 is a real answer, and it is deliberately not cached: a track added
+    // later would otherwise stay missing for the cache lifetime.
+    if (status === 404 && onMissing) throw onMissing();
+
+    const data = parse(body);
+    this.cache.set(url, data);
+    return { data, cached: false };
   }
 }
