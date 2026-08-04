@@ -1,0 +1,61 @@
+{
+  "manifest_version": "0.3",
+  "name": "mcp-lrclib",
+  "display_name": "LRCLIB",
+  "version": "1.2.0",
+  "description": "MCP server for LRCLIB. Search tracks and fetch plain or time-synced (LRC) lyrics. No API key required.",
+  "long_description": "Search LRCLIB for a track and read its lyrics, plain or time-synced (LRC). No API key, no account.",
+  "author": {
+    "name": "Damien Bouissou",
+    "url": "https://github.com/smeet666"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smeet666/mcp-lrclib.git"
+  },
+  "homepage": "https://github.com/smeet666/mcp-lrclib#readme",
+  "documentation": "https://github.com/smeet666/mcp-lrclib#readme",
+  "support": "https://github.com/smeet666/mcp-lrclib/issues",
+  "icon": "assets/icon-512.png",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "mcp-server",
+    "lrclib",
+    "lyrics",
+    "synced-lyrics",
+    "lrc",
+    "karaoke",
+    "music"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  },
+  "tools": [
+    {
+      "name": "search_tracks",
+      "description": "Find a track by title, artist or album."
+    },
+    {
+      "name": "get_track",
+      "description": "Read one track's metadata by id."
+    },
+    {
+      "name": "get_lyrics",
+      "description": "Read a track's lyrics, plain or time-synced."
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}
