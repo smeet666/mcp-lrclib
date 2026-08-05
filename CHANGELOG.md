@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.0
+
+- Say that an offset landed past the end of the words. An empty body under the
+  word "Complete." reads as a track that carries no lyrics, which is a different
+  fact from the one that happened, and the only one of the two that is false.
+  The answer now names the position asked for and the length of what is there.
+- Carry the notes into the text block. They are what qualifies an answer: that
+  timed lines were capped, that only the plain text exists for a track, that
+  the words came from this server's own cache. A client rendering only the text
+  read none of it.
+- Name the body the character counts describe. Timed text carries its
+  timestamps, so asking how long a song's words are and being handed the length
+  of the LRC block is an answer to a different question.
+- Keep published text from producing a line shaped like a note this server
+  wrote.
+
 ## 1.2.0
 
 - Ship a `.mcpb` bundle on every release, so the server can be installed by

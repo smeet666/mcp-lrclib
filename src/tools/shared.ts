@@ -47,9 +47,38 @@ export interface ToolResult {
   isError?: boolean;
 }
 
-export function ok(structured: Record<string, unknown>, text: string): ToolResult {
+/**
+ * Keep text from the site out of the shape this server's own lines take.
+ *
+ * A block that ends with lines opening "Note:" gives a caller no way to tell
+ * one of those from the same words inside a title someone else wrote.
+ * Indenting such a line in the body keeps the two apart without altering it:
+ * the structured output still carries it exactly as published.
+ */
+function indentMarkerLines(body: string): string {
+  return body.replace(/^(Note:)/gm, " $1");
+}
+
+/**
+ * Build a result whose text block ends with its notes.
+ *
+ * The notes are what qualifies an answer: that an offset landed past the end of
+ * a song, that timed lines were capped, that the response came from this
+ * server's own cache. A client rendering only the text reads an answer with
+ * nothing to qualify it, so they are appended after the body is trimmed and
+ * survive a long one.
+ */
+export function ok(
+  structured: Record<string, unknown>,
+  text: string,
+  notes: string[] = [],
+): ToolResult {
+  const trailer = notes.map((note) => `Note: ${note}`).join("\n");
+  const budget = MAX_TEXT_MIRROR_CHARS - (trailer ? trailer.length + 2 : 0);
+  const body = truncate(indentMarkerLines(text), Math.max(0, budget));
+
   return {
-    content: [{ type: "text", text: truncate(text, MAX_TEXT_MIRROR_CHARS) }],
+    content: [{ type: "text", text: trailer ? `${body}\n\n${trailer}` : body }],
     structuredContent: structured,
   };
 }

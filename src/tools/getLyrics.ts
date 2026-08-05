@@ -87,6 +87,11 @@ export const getLyricsOutputShape = {
   synced_lyrics: z.string().nullable().describe("Raw LRC text, one timestamp per line."),
   synced_lines: z.array(syncedLineSchema).nullable().describe("Parsed timestamped lines."),
   synced_lines_truncated: z.boolean(),
+  paginated_form: z
+    .enum(["plain", "synced"])
+    .describe(
+      "Which body the character counts and the offset describe. Timed text carries its timestamps, so it is longer than the words alone.",
+    ),
   total_chars: z.number().int(),
   returned_chars: z.number().int(),
   offset: z.number().int(),
@@ -131,6 +136,7 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       synced_lyrics: null,
       synced_lines: null,
       synced_lines_truncated: false,
+      paginated_form: "plain" as const,
       total_chars: 0,
       returned_chars: 0,
       offset: 0,
@@ -146,6 +152,7 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       return ok(
         { ...base, status: "instrumental" as const, notes },
         `${attribution}\nLRCLIB marks this track as instrumental, so it has no lyrics.`,
+        notes,
       );
     }
 
@@ -164,6 +171,7 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       return ok(
         { ...base, status: "no_lyrics" as const, notes },
         `${attribution}\nLRCLIB has a record for this track but no lyrics on file.`,
+        notes,
       );
     }
 
@@ -186,9 +194,23 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       );
     }
 
+    const paginatedForm =
+      wantsSynced && track.syncedLyrics ? ("synced" as const) : ("plain" as const);
+
+    // An offset beyond the text yields an empty body, which on its own reads as
+    // a track that carries no words. What happened is that the caller asked for
+    // a position that does not exist, and only saying so tells the two apart.
+    const pastTheEnd = args.offset > 0 && slice.text === "" && primary.length > 0;
+    if (pastTheEnd) {
+      notes.push(
+        `offset=${args.offset} is past the end of a ${paginatedForm} body of ${primary.length} characters. Call again with offset=0 to read it from the start.`,
+      );
+    }
+
     const structured = {
       ...base,
       status: "ok" as const,
+      paginated_form: paginatedForm,
       plain_lyrics: wantsPlain ? (track.plainLyrics ?? null) : null,
       synced_lyrics: wantsSynced && track.syncedLyrics ? slice.text : null,
       synced_lines: syncedLines
@@ -213,16 +235,18 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
     const summary = [
       attribution,
       duration ? `Duration ${duration}.` : "",
-      `${structured.total_chars} characters.`,
-      slice.nextOffset !== null
-        ? `Truncated: call again with offset=${slice.nextOffset} to continue.`
-        : "Complete.",
+      `${structured.total_chars} characters of ${paginatedForm} text.`,
+      pastTheEnd
+        ? `Nothing at offset=${args.offset}: that is past the end. Call again with offset=0.`
+        : slice.nextOffset !== null
+          ? `Truncated: call again with offset=${slice.nextOffset} to continue.`
+          : "Complete.",
       syncedLines ? `${syncedLines.length} timed lines.` : "",
     ]
       .filter(Boolean)
       .join("\n");
 
-    return ok(structured, truncate(`${summary}\n\n${slice.text}`, 4000));
+    return ok(structured, truncate(`${summary}\n\n${slice.text}`, 4000), notes);
   } catch (error) {
     return toToolError(error);
   }
