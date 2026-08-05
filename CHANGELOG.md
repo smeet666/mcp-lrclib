@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0
+
+- Stop a duration that fits no release from turning a track LRCLIB holds into a
+  track it says it has never heard of. LRCLIB matches `duration_seconds` as part
+  of the key rather than using it to choose between versions, within about two
+  seconds, so asking for "Le Sud" by Nino Ferrer at 30 seconds answered that no
+  such track exists and blamed the spelling. The lookup now asks again without
+  the duration, returns the track, and says which version came back and that the
+  requested length matched none of them. A track LRCLIB genuinely does not hold
+  is still reported as absent.
+
 ## 1.3.0
 
 - Say that an offset landed past the end of the words. An empty body under the

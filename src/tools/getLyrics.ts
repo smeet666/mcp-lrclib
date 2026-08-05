@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { invalidInput } from "../errors.js";
+import { LrclibError, invalidInput } from "../errors.js";
 import type { LrclibClient } from "../lrclib/client.js";
 import { formatDuration, parseLrc, sliceAtLineBoundary } from "../text/lyrics.js";
 import type { TrackWithLyrics } from "../types.js";
@@ -115,11 +115,18 @@ export interface GetLyricsArgs {
 
 export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): Promise<ToolResult> {
   try {
-    const { track, cached } = await resolveTrack(client, args);
+    const { track, cached, durationMissed } = await resolveTrack(client, args);
     const meta = toTrackMetaOut(track);
     const attribution = attributionFor(meta);
     const notes: string[] = [];
     if (cached) notes.push("Served from this server's short-lived in-memory cache.");
+    if (durationMissed !== undefined) {
+      notes.push(
+        `No release of this track runs ${durationMissed} seconds, so the duration was set aside. ` +
+          `These are the lyrics of the ${meta.duration_seconds ?? "unknown"}-second version. ` +
+          "Use search_tracks to see every version and pick one by id.",
+      );
+    }
 
     const trackOut = {
       id: meta.id,
@@ -255,7 +262,7 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
 async function resolveTrack(
   client: LrclibClient,
   args: GetLyricsArgs,
-): Promise<{ track: TrackWithLyrics; cached: boolean }> {
+): Promise<{ track: TrackWithLyrics; cached: boolean; durationMissed?: number }> {
   if (args.id !== undefined) {
     const { data, cached } = await client.getById(args.id);
     return { track: data, cached };
@@ -268,11 +275,31 @@ async function resolveTrack(
     );
   }
 
-  const { data, cached } = await client.get({
+  const query = {
     artistName: args.artist_name,
     trackName: args.track_name,
     ...(args.album_name ? { albumName: args.album_name } : {}),
-    ...(args.duration_seconds !== undefined ? { durationSeconds: args.duration_seconds } : {}),
-  });
-  return { track: data, cached };
+  };
+
+  if (args.duration_seconds === undefined) {
+    const { data, cached } = await client.get(query);
+    return { track: data, cached };
+  }
+
+  try {
+    const { data, cached } = await client.get({
+      ...query,
+      durationSeconds: args.duration_seconds,
+    });
+    return { track: data, cached };
+  } catch (error) {
+    // LRCLIB matches the duration as part of the key rather than using it to
+    // rank releases, so a value that fits none of them answers 404 for a track
+    // it holds. Asking again without it tells a missing track apart from a
+    // duration that missed, and only the first is an absence.
+    if (!(error instanceof LrclibError) || error.code !== "not_found") throw error;
+
+    const { data, cached } = await client.get(query);
+    return { track: data, cached, durationMissed: args.duration_seconds };
+  }
 }
