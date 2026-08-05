@@ -4,6 +4,7 @@
 [![CI](https://github.com/smeet666/mcp-lrclib/actions/workflows/ci.yml/badge.svg)](https://github.com/smeet666/mcp-lrclib/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/mcp-lrclib.svg)](./LICENSE)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-listed-6E56CF)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.smeet666/mcp-lrclib)
+[![Glama](https://glama.ai/mcp/servers/smeet666/mcp-lrclib/badges/score.svg)](https://glama.ai/mcp/servers/smeet666/mcp-lrclib)
 
 An [MCP](https://modelcontextprotocol.io) server for [LRCLIB](https://lrclib.net).
 Search tracks and read their lyrics, including **time-synced (LRC) lyrics** with a
