@@ -12,14 +12,14 @@ import { createLogger, loadConfig } from "./config.js";
 import { LrclibClient } from "./lrclib/client.js";
 import {
   getLyricsDescription,
-  getLyricsInputShape,
+  getLyricsInput,
   getLyricsOutputShape,
   runGetLyrics,
 } from "./tools/getLyrics.js";
 import type { GetLyricsArgs } from "./tools/getLyrics.js";
 import {
   getTrackDescription,
-  getTrackInputShape,
+  getTrackInput,
   getTrackOutputShape,
   runGetTrack,
 } from "./tools/getTrack.js";
@@ -27,7 +27,7 @@ import type { GetTrackArgs } from "./tools/getTrack.js";
 import {
   runSearchTracks,
   searchTracksDescription,
-  searchTracksInputShape,
+  searchTracksInput,
   searchTracksOutputShape,
 } from "./tools/searchTracks.js";
 import type { SearchTracksArgs } from "./tools/searchTracks.js";
@@ -73,7 +73,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Search tracks",
       description: searchTracksDescription,
-      inputSchema: z.object(searchTracksInputShape),
+      inputSchema: searchTracksInput,
       outputSchema: z.object(searchTracksOutputShape),
       annotations: READ_ONLY,
     },
@@ -85,7 +85,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Get lyrics",
       description: getLyricsDescription,
-      inputSchema: z.object(getLyricsInputShape),
+      inputSchema: getLyricsInput,
       outputSchema: z.object(getLyricsOutputShape),
       annotations: READ_ONLY,
     },
@@ -97,7 +97,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: "Get track metadata",
       description: getTrackDescription,
-      inputSchema: z.object(getTrackInputShape),
+      inputSchema: getTrackInput,
       outputSchema: z.object(getTrackOutputShape),
       annotations: READ_ONLY,
     },

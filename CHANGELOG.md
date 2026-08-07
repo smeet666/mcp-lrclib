@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0
+
+- The schema every tool published already carried `additionalProperties: false`,
+  and the server accepted an argument outside it anyway, reading it and dropping
+  it in silence. A caller who mistyped a name, or wrote one a neighbouring tool
+  takes, read a rule that said the mistake would be caught and was answered as
+  confidently as one who had asked what they meant, on lyrics chosen by the
+  defaults. Every tool now refuses an argument it does not declare, under the
+  `invalid_input` code, naming the argument and offering the declared name when
+  one is close: `limt` on `search_tracks` is answered with `limit`, `duration`
+  on `get_lyrics` with `duration_seconds`.
+
 ## 1.4.0
 
 - Stop a duration that fits no release from turning a track LRCLIB holds into a

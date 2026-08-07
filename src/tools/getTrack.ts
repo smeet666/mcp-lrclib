@@ -9,6 +9,7 @@
 import { z } from "zod";
 import type { LrclibClient } from "../lrclib/client.js";
 import { formatDuration } from "../text/lyrics.js";
+import { strictInput } from "./arguments.js";
 import { ok, toToolError, toTrackMetaOut, trackMetaSchema } from "./shared.js";
 import type { ToolResult } from "./shared.js";
 
@@ -19,9 +20,9 @@ export const getTrackDescription = [
   "or to check whether timed lyrics exist for a track id you already hold.",
 ].join(" ");
 
-export const getTrackInputShape = {
+export const getTrackInput = strictInput({
   id: z.number().int().positive().describe("LRCLIB track id, as returned by search_tracks."),
-};
+});
 
 export const getTrackOutputShape = {
   track: trackMetaSchema,

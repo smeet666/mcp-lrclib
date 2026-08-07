@@ -9,6 +9,7 @@
 import { z } from "zod";
 import { invalidInput } from "../errors.js";
 import type { LrclibClient } from "../lrclib/client.js";
+import { strictInput } from "./arguments.js";
 import { ok, renderTrackList, toToolError, toTrackMetaOut, trackMetaSchema } from "./shared.js";
 import type { ToolResult } from "./shared.js";
 
@@ -21,7 +22,7 @@ export const searchTracksDescription = [
   "LRCLIB indexes tracks by their metadata, so it cannot search for a word appearing inside the lyrics.",
 ].join(" ");
 
-export const searchTracksInputShape = {
+export const searchTracksInput = strictInput({
   query: z
     .string()
     .min(1)
@@ -38,7 +39,7 @@ export const searchTracksInputShape = {
     .max(50)
     .default(10)
     .describe("Maximum tracks to return. LRCLIB returns up to 20 per search."),
-};
+});
 
 export const searchTracksOutputShape = {
   results: z.array(trackMetaSchema),

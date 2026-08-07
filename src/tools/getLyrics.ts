@@ -7,6 +7,7 @@ import { LrclibError, invalidInput } from "../errors.js";
 import type { LrclibClient } from "../lrclib/client.js";
 import { formatDuration, parseLrc, sliceAtLineBoundary } from "../text/lyrics.js";
 import type { TrackWithLyrics } from "../types.js";
+import { strictInput } from "./arguments.js";
 import { attributionFor, ok, toToolError, toTrackMetaOut, truncate } from "./shared.js";
 import type { ToolResult } from "./shared.js";
 
@@ -23,7 +24,7 @@ export const getLyricsDescription = [
   "Always cite 'attribution' when showing lyrics to a user.",
 ].join(" ");
 
-export const getLyricsInputShape = {
+export const getLyricsInput = strictInput({
   id: z
     .number()
     .int()
@@ -66,7 +67,7 @@ export const getLyricsInputShape = {
     .min(0)
     .default(0)
     .describe("Character offset to resume from, for lyrics longer than max_chars."),
-};
+});
 
 const syncedLineSchema = z.object({
   time_seconds: z.number(),
