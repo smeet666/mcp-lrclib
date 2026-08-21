@@ -30,10 +30,14 @@ export function parseLrc(lrc: string): SyncedLine[] {
       const minutes = Number(match[1]);
       const seconds = Number(match[2]);
       const fraction = match[3] ? Number(`0.${match[3]}`) : 0;
-      if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) continue;
+      if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+        continue;
+      }
       stamps.push(minutes * 60 + seconds + fraction);
     }
-    if (stamps.length === 0) continue;
+    if (stamps.length === 0) {
+      continue;
+    }
 
     const text = rawLine.replace(TIMESTAMP_RE, "").trim();
     for (const timeSeconds of stamps) {
@@ -65,10 +69,14 @@ export function sliceAtLineBoundary(text: string, offset: number, maxChars: numb
   // A negative offset is clamped to the start. String.slice would otherwise read
   // from the end of the text, silently returning the wrong part of a song.
   const start = Math.max(0, Math.trunc(offset));
-  if (start >= text.length) return { text: "", nextOffset: null };
+  if (start >= text.length) {
+    return { text: "", nextOffset: null };
+  }
 
   const remaining = text.slice(start);
-  if (remaining.length <= maxChars) return { text: remaining, nextOffset: null };
+  if (remaining.length <= maxChars) {
+    return { text: remaining, nextOffset: null };
+  }
 
   const window = remaining.slice(0, maxChars);
   const lastBreak = window.lastIndexOf("\n");
@@ -78,7 +86,9 @@ export function sliceAtLineBoundary(text: string, offset: number, maxChars: numb
 
 /** Seconds to `m:ss`, for the human-readable mirror of a duration. */
 export function formatDuration(seconds: number | null): string | null {
-  if (seconds === null || !Number.isFinite(seconds) || seconds < 0) return null;
+  if (seconds === null || !Number.isFinite(seconds) || seconds < 0) {
+    return null;
+  }
   const whole = Math.round(seconds);
   const minutes = Math.floor(whole / 60);
   return `${minutes}:${String(whole % 60).padStart(2, "0")}`;

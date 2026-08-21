@@ -11,6 +11,93 @@ import { strictInput } from "./arguments.js";
 import { attributionFor, ok, toToolError, toTrackMetaOut, truncate } from "./shared.js";
 import type { ToolResult } from "./shared.js";
 
+/** Where the answer stopped in the words, and what to ask for to go on. */
+function howFarTheTextGoes(pastTheEnd: boolean, offset: number, nextOffset: number | null): string {
+  if (pastTheEnd) {
+    return `Nothing at offset=${offset}: that is past the end. Call again with offset=0.`;
+  }
+  if (nextOffset === null) {
+    return "Complete.";
+  }
+  return `Truncated: call again with offset=${nextOffset} to continue.`;
+}
+
+/**
+ * The body this call paginates, the slice of it that answers, and the timed
+ * lines read out of that slice.
+ *
+ * The budget applies to whichever body is the primary payload, so the offset
+ * arithmetic stays meaningful from one call to the next. The timed lines come
+ * from the slice rather than the whole song: parsing the full text would carry
+ * every line regardless of max_chars, and the answer would grow with the length
+ * of the track while the raw text stayed bounded.
+ */
+function readWords(
+  track: TrackWithLyrics,
+  args: GetLyricsArgs,
+  wantsSynced: boolean,
+): {
+  primary: string;
+  slice: ReturnType<typeof sliceAtLineBoundary>;
+  syncedLines: ReturnType<typeof parseLrc> | null;
+  syncedTruncated: boolean;
+  paginatedForm: "synced" | "plain";
+} {
+  const synced = wantsSynced ? track.syncedLyrics : null;
+  const primary = synced ?? track.plainLyrics ?? "";
+  const slice = sliceAtLineBoundary(primary, args.offset, args.max_chars);
+  const allLines = synced ? parseLrc(slice.text) : null;
+
+  return {
+    primary,
+    slice,
+    syncedLines: allLines ? allLines.slice(0, MAX_SYNCED_LINES) : null,
+    syncedTruncated: allLines !== null && allLines.length > MAX_SYNCED_LINES,
+    paginatedForm: synced ? "synced" : "plain",
+  };
+}
+
+/**
+ * The answer for a track that carries no words to paginate, when there is one.
+ *
+ * An instrumental has no lyrics by nature and a record can exist with none on
+ * file: both are answers rather than failures, and reporting either as an error
+ * would invite a retry that cannot help.
+ */
+function answerCarryingNoWords(
+  track: TrackWithLyrics,
+  base: Record<string, unknown>,
+  attribution: string,
+  notes: string[],
+  wantsSynced: boolean,
+): ToolResult | null {
+  if (track.instrumental) {
+    return ok(
+      { ...base, status: "instrumental" as const, notes },
+      `${attribution}\nLRCLIB marks this track as instrumental, so it has no lyrics.`,
+      notes,
+    );
+  }
+
+  if (wantsSynced && !track.syncedLyrics) {
+    notes.push(
+      track.plainLyrics
+        ? "LRCLIB has no time-synced lyrics for this track; only the plain text is available."
+        : "LRCLIB has no lyrics of either kind for this track.",
+    );
+  }
+
+  if (!track.plainLyrics && !track.syncedLyrics) {
+    return ok(
+      { ...base, status: "no_lyrics" as const, notes },
+      `${attribution}\nLRCLIB has a record for this track but no lyrics on file.`,
+      notes,
+    );
+  }
+
+  return null;
+}
+
 /** Timed lines are compact, but a long song still warrants a ceiling. */
 const MAX_SYNCED_LINES = 400;
 
@@ -120,7 +207,9 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
     const meta = toTrackMetaOut(track);
     const attribution = attributionFor(meta);
     const notes: string[] = [];
-    if (cached) notes.push("Served from this server's short-lived in-memory cache.");
+    if (cached) {
+      notes.push("Served from this server's short-lived in-memory cache.");
+    }
     if (durationMissed !== undefined) {
       notes.push(
         `No release of this track runs ${durationMissed} seconds, so the duration was set aside. ` +
@@ -154,56 +243,24 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       source: "lrclib.net" as const,
     };
 
-    // An instrumental track has no lyrics by nature, which is an answer rather
-    // than a failure. Reporting it as an error would invite pointless retries.
-    if (track.instrumental) {
-      return ok(
-        { ...base, status: "instrumental" as const, notes },
-        `${attribution}\nLRCLIB marks this track as instrumental, so it has no lyrics.`,
-        notes,
-      );
-    }
-
     const wantsSynced = args.format === "synced" || args.format === "both";
     const wantsPlain = args.format === "plain" || args.format === "both";
 
-    if (wantsSynced && !track.syncedLyrics) {
-      notes.push(
-        track.plainLyrics
-          ? "LRCLIB has no time-synced lyrics for this track; only the plain text is available."
-          : "LRCLIB has no lyrics of either kind for this track.",
-      );
+    const withoutWords = answerCarryingNoWords(track, base, attribution, notes, wantsSynced);
+    if (withoutWords) {
+      return withoutWords;
     }
 
-    if (!track.plainLyrics && !track.syncedLyrics) {
-      return ok(
-        { ...base, status: "no_lyrics" as const, notes },
-        `${attribution}\nLRCLIB has a record for this track but no lyrics on file.`,
-        notes,
-      );
-    }
-
-    // The pagination budget applies to whichever body is the primary payload,
-    // so that offset arithmetic stays meaningful across calls.
-    const primary =
-      wantsSynced && track.syncedLyrics ? track.syncedLyrics : (track.plainLyrics ?? "");
-    const slice = sliceAtLineBoundary(primary, args.offset, args.max_chars);
-
-    // Timed lines are parsed from the returned slice, not from the whole song.
-    // Parsing the full text would carry every line of the lyrics regardless of
-    // max_chars, so the pagination budget would bound the raw text while the
-    // response still grew with the length of the track.
-    const allLines = wantsSynced && track.syncedLyrics ? parseLrc(slice.text) : null;
-    const syncedLines = allLines ? allLines.slice(0, MAX_SYNCED_LINES) : null;
-    const syncedTruncated = allLines !== null && allLines.length > MAX_SYNCED_LINES;
+    const { primary, slice, syncedLines, syncedTruncated, paginatedForm } = readWords(
+      track,
+      args,
+      wantsSynced,
+    );
     if (syncedTruncated) {
       notes.push(
         `Timed lines are capped at ${MAX_SYNCED_LINES} per call; continue with offset=${slice.nextOffset ?? 0}.`,
       );
     }
-
-    const paginatedForm =
-      wantsSynced && track.syncedLyrics ? ("synced" as const) : ("plain" as const);
 
     // An offset beyond the text yields an empty body, which on its own reads as
     // a track that carries no words. What happened is that the caller asked for
@@ -244,11 +301,7 @@ export async function runGetLyrics(client: LrclibClient, args: GetLyricsArgs): P
       attribution,
       duration ? `Duration ${duration}.` : "",
       `${structured.total_chars} characters of ${paginatedForm} text.`,
-      pastTheEnd
-        ? `Nothing at offset=${args.offset}: that is past the end. Call again with offset=0.`
-        : slice.nextOffset !== null
-          ? `Truncated: call again with offset=${slice.nextOffset} to continue.`
-          : "Complete.",
+      howFarTheTextGoes(pastTheEnd, args.offset, slice.nextOffset),
       syncedLines ? `${syncedLines.length} timed lines.` : "",
     ]
       .filter(Boolean)
@@ -298,7 +351,9 @@ async function resolveTrack(
     // rank releases, so a value that fits none of them answers 404 for a track
     // it holds. Asking again without it tells a missing track apart from a
     // duration that missed, and only the first is an absence.
-    if (!(error instanceof LrclibError) || error.code !== "not_found") throw error;
+    if (!(error instanceof LrclibError) || error.code !== "not_found") {
+      throw error;
+    }
 
     const { data, cached } = await client.get(query);
     return { track: data, cached, durationMissed: args.duration_seconds };

@@ -20,7 +20,7 @@ import { fixture, fixtureRouter, testConfig } from "./_helpers.js";
 const logger = createLogger("silent");
 
 /** One valid call per tool, so a refusal is never mistaken for a broken tool. */
-const CALLS: Array<[string, Record<string, unknown>]> = [
+const CALLS: [string, Record<string, unknown>][] = [
   ["search_tracks", { query: "placeholder" }],
   ["get_lyrics", { id: 35670801 }],
   ["get_track", { id: 35670801 }],

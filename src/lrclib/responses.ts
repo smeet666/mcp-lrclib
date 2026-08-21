@@ -62,7 +62,9 @@ export function toTrackWithLyrics(raw: RawTrack, url: string): TrackWithLyrics {
 
 /** A search response is an array; anything else means the API changed. */
 export function toSearchResults(payload: unknown, url: string): TrackMeta[] {
-  if (!Array.isArray(payload)) throw malformedResponse(url);
+  if (!Array.isArray(payload)) {
+    throw malformedResponse(url);
+  }
 
   const results: TrackMeta[] = [];
   for (const row of payload) {
@@ -84,9 +86,13 @@ export interface ApiError {
 }
 
 export function toApiError(payload: unknown): ApiError | null {
-  if (typeof payload !== "object" || payload === null) return null;
+  if (typeof payload !== "object" || payload === null) {
+    return null;
+  }
   const candidate = payload as Record<string, unknown>;
-  if (typeof candidate.name !== "string" || typeof candidate.message !== "string") return null;
+  if (typeof candidate.name !== "string" || typeof candidate.message !== "string") {
+    return null;
+  }
   return {
     name: candidate.name,
     message: candidate.message,

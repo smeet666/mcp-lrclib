@@ -90,7 +90,9 @@ export async function runSearchTracks(
     );
 
     const notes: string[] = [];
-    if (cached) notes.push("Served from this server's short-lived in-memory cache.");
+    if (cached) {
+      notes.push("Served from this server's short-lived in-memory cache.");
+    }
     if (data.length > args.limit) {
       notes.push(`LRCLIB returned ${data.length} tracks; showing the first ${args.limit}.`);
     }
