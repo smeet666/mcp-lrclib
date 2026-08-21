@@ -448,7 +448,8 @@ describe("get_lyrics", () => {
         const structured = result.structuredContent as Record<string, unknown>;
         pieces.push(String(structured.plain_lyrics ?? ""));
         offset = structured.next_offset ?? null;
-        expect((guard += 1)).toBeLessThan(50);
+        guard += 1;
+        expect(guard).toBeLessThan(50);
       }
       expect(pieces.length).toBeGreaterThan(1);
       const plain = both.plainLyrics as string;

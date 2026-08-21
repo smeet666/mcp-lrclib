@@ -9,7 +9,7 @@
 import type { Config, Logger } from "../config.js";
 import { LrclibError, rateLimited, upstreamError } from "../errors.js";
 import { toApiError } from "./responses.js";
-import { RateLimiter, sleep } from "./rateLimiter.js";
+import { type RateLimiter, sleep } from "./rateLimiter.js";
 
 const BACKOFF_BASE_MS = 1000;
 const BACKOFF_FACTOR = 2;

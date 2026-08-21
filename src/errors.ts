@@ -7,7 +7,12 @@
  */
 
 export type ErrorCode =
-  "not_found" | "invalid_input" | "rate_limited" | "upstream_error" | "network_error" | "timeout";
+  | "not_found"
+  | "invalid_input"
+  | "rate_limited"
+  | "upstream_error"
+  | "network_error"
+  | "timeout";
 
 export interface ErrorDetails {
   url?: string;
