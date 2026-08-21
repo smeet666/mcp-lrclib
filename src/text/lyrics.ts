@@ -22,8 +22,11 @@ export function parseLrc(lrc: string): SyncedLine[] {
   for (const rawLine of lrc.split("\n")) {
     TIMESTAMP_RE.lastIndex = 0;
     const stamps: number[] = [];
-    let match: RegExpExecArray | null;
-    while ((match = TIMESTAMP_RE.exec(rawLine)) !== null) {
+    for (
+      let match = TIMESTAMP_RE.exec(rawLine);
+      match !== null;
+      match = TIMESTAMP_RE.exec(rawLine)
+    ) {
       const minutes = Number(match[1]);
       const seconds = Number(match[2]);
       const fraction = match[3] ? Number(`0.${match[3]}`) : 0;
