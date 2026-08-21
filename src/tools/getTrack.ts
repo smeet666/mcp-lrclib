@@ -40,7 +40,9 @@ export async function runGetTrack(client: LrclibClient, args: GetTrackArgs): Pro
     const { data, cached } = await client.getById(args.id);
     const track = toTrackMetaOut(data);
     const notes: string[] = [];
-    if (cached) notes.push("Served from this server's short-lived in-memory cache.");
+    if (cached) {
+      notes.push("Served from this server's short-lived in-memory cache.");
+    }
 
     const duration = formatDuration(track.duration_seconds);
     const structured = {

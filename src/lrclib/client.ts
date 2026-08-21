@@ -80,7 +80,7 @@ export class LrclibClient {
    */
   async search(params: SearchParams): Promise<Outcome<TrackMeta[]>> {
     const url = buildSearchUrl(params);
-    return this.fetchParsed(url, (body) => toSearchResults(body, url));
+    return await this.fetchParsed(url, (body) => toSearchResults(body, url));
   }
 
   /** Exact-match lookup by artist and title, with the full lyrics. */
@@ -89,9 +89,9 @@ export class LrclibClient {
       artistName: query.artistName,
       trackName: query.trackName,
       ...(query.albumName ? { albumName: query.albumName } : {}),
-      ...(query.durationSeconds !== undefined ? { durationSeconds: query.durationSeconds } : {}),
+      ...(query.durationSeconds === undefined ? {} : { durationSeconds: query.durationSeconds }),
     });
-    return this.fetchParsed(
+    return await this.fetchParsed(
       url,
       (body) => toTrackWithLyrics(body as object, url),
       () => trackNotFound(url, `"${query.trackName}" by "${query.artistName}"`),
@@ -101,7 +101,7 @@ export class LrclibClient {
   /** Lookup by LRCLIB id, with the full lyrics. */
   async getById(id: number): Promise<Outcome<TrackWithLyrics>> {
     const url = buildGetByIdUrl(id);
-    return this.fetchParsed(
+    return await this.fetchParsed(
       url,
       (body) => toTrackWithLyrics(body as object, url),
       () => trackNotFound(url, `id ${id}`),
@@ -137,7 +137,9 @@ export class LrclibClient {
 
     // A 404 is a real answer, and it is deliberately not cached: a track added
     // later would otherwise stay missing for the cache lifetime.
-    if (status === 404 && onMissing) throw onMissing();
+    if (status === 404 && onMissing) {
+      throw onMissing();
+    }
 
     const data = parse(body);
     this.cache.set(url, data);

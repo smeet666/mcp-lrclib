@@ -10,7 +10,9 @@ export function trackPageUrl(id: number): string {
 function withParams(path: string, params: Record<string, string | number | undefined>): string {
   const url = new URL(`${API_BASE}${path}`);
   for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === "") continue;
+    if (value === undefined || value === "") {
+      continue;
+    }
     url.searchParams.set(key, String(value));
   }
   return url.toString();
@@ -29,7 +31,9 @@ export interface SearchParams {
  * makes the structured fields win, so callers pick one shape.
  */
 export function buildSearchUrl(params: SearchParams): string {
-  if (params.q) return withParams("/search", { q: params.q });
+  if (params.q) {
+    return withParams("/search", { q: params.q });
+  }
   return withParams("/search", {
     track_name: params.trackName,
     artist_name: params.artistName,

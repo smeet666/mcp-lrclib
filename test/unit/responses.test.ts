@@ -14,10 +14,17 @@ const richRow: RawRow = fixture<RawRow>("track-with-both.json");
 
 /** Every string reachable from a value, however deeply nested. */
 function allStrings(value: unknown, out: string[] = []): string[] {
-  if (typeof value === "string") out.push(value);
-  else if (Array.isArray(value)) for (const item of value) allStrings(item, out);
-  else if (value && typeof value === "object")
-    for (const item of Object.values(value)) allStrings(item, out);
+  if (typeof value === "string") {
+    out.push(value);
+  } else if (Array.isArray(value)) {
+    for (const item of value) {
+      allStrings(item, out);
+    }
+  } else if (value && typeof value === "object") {
+    for (const item of Object.values(value)) {
+      allStrings(item, out);
+    }
+  }
   return out;
 }
 
@@ -61,7 +68,9 @@ describe("toTrackMeta", () => {
       ];
       for (const name of names) {
         const value = (meta as unknown as Record<string, unknown>)[name];
-        if (typeof value === "string") expect(value).not.toContain("Placeholder line");
+        if (typeof value === "string") {
+          expect(value).not.toContain("Placeholder line");
+        }
       }
       expect(names).not.toContain("plainLyrics");
       expect(names).not.toContain("syncedLyrics");

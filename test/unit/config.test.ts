@@ -26,7 +26,9 @@ function captureStderr(): { lines: () => string; restore: () => void } {
     lines: () => chunks.join("\n"),
     restore: () => {
       writeSpy.mockRestore();
-      for (const spy of consoleSpies) spy.mockRestore();
+      for (const spy of consoleSpies) {
+        spy.mockRestore();
+      }
     },
   };
 }
@@ -51,8 +53,11 @@ describe("loadConfig", () => {
     try {
       expect(loadConfig({}).userAgent).toBe(DEFAULT_USER_AGENT);
     } finally {
-      if (previous === undefined) delete process.env.LRCLIB_USER_AGENT;
-      else process.env.LRCLIB_USER_AGENT = previous;
+      if (previous === undefined) {
+        delete process.env.LRCLIB_USER_AGENT;
+      } else {
+        process.env.LRCLIB_USER_AGENT = previous;
+      }
     }
   });
 
@@ -288,7 +293,9 @@ describe("createLogger", () => {
   function callEveryMethod(logger: object, message: string): void {
     for (const key of Object.keys(logger)) {
       const value = (logger as Record<string, unknown>)[key];
-      if (typeof value === "function") (value as (...args: unknown[]) => unknown)(message);
+      if (typeof value === "function") {
+        (value as (...args: unknown[]) => unknown)(message);
+      }
     }
   }
 

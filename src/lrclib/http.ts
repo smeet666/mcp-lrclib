@@ -46,7 +46,7 @@ export async function fetchJson(url: string, deps: HttpDeps): Promise<JsonRespon
   const { config, limiter, logger } = deps;
   const doFetch = deps.fetchImpl ?? fetch;
 
-  return limiter.schedule(async () => {
+  return await limiter.schedule(async () => {
     let lastError: LrclibError | undefined;
 
     // Set when the site says how long to stay away; it replaces our own guess
@@ -103,7 +103,9 @@ export async function fetchJson(url: string, deps: HttpDeps): Promise<JsonRespon
       limiter.relax();
       const body = parseBody(text);
 
-      if (status === 404) return { status, body };
+      if (status === 404) {
+        return { status, body };
+      }
       if (status >= 400) {
         const apiError = toApiError(body);
         throw upstreamError(url, status, apiError?.message);
@@ -118,7 +120,9 @@ export async function fetchJson(url: string, deps: HttpDeps): Promise<JsonRespon
 
 /** LRCLIB sends an empty body on some 404s, which is not an error to report. */
 function parseBody(text: string): unknown {
-  if (text.trim() === "") return undefined;
+  if (text.trim() === "") {
+    return undefined;
+  }
   try {
     return JSON.parse(text);
   } catch {
@@ -128,16 +132,24 @@ function parseBody(text: string): unknown {
 
 /** `Retry-After` carries either seconds or an HTTP date. */
 function parseRetryAfter(raw: string | null): number | null {
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   const seconds = Number(raw.trim());
-  if (Number.isFinite(seconds) && seconds >= 0) return Math.round(seconds * 1000);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.round(seconds * 1000);
+  }
   const when = Date.parse(raw);
-  if (Number.isNaN(when)) return null;
+  if (Number.isNaN(when)) {
+    return null;
+  }
   return Math.max(0, when - Date.now());
 }
 
 function asTransportError(error: unknown, url: string): LrclibError {
-  if (error instanceof LrclibError) return error;
+  if (error instanceof LrclibError) {
+    return error;
+  }
   const name = error instanceof Error ? error.name : "";
   if (name === "TimeoutError" || name === "AbortError") {
     return new LrclibError("timeout", "LRCLIB did not answer in time.", {

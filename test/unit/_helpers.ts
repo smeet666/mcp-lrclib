@@ -6,6 +6,17 @@ import type { Config } from "../../src/config.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, "..", "fixtures");
 
+/** The address a fetch was called with, whichever of the three shapes it took. */
+function addressOf(input: unknown): string {
+  if (typeof input === "string") {
+    return input;
+  }
+  if (input instanceof URL) {
+    return input.toString();
+  }
+  return String((input as { url?: unknown }).url);
+}
+
 export function fixtureText(name: string): string {
   return readFileSync(join(fixturesDir, name), "utf8");
 }
@@ -61,12 +72,7 @@ export function makeFetch(
 ): FetchStub {
   const calls: string[] = [];
   const impl = (async (input: unknown, init?: RequestInit) => {
-    const url =
-      typeof input === "string"
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : String((input as { url?: unknown }).url);
+    const url = addressOf(input);
     calls.push(url);
     return handler(url, init);
   }) as unknown as typeof fetch;
@@ -90,12 +96,16 @@ export function fixtureRouter(
     if (byIdMatch) {
       const id = byIdMatch[1] as string;
       const body = options.byId?.[id];
-      if (body === undefined) return jsonResponse(fixture("error-not-found.json"), 404);
+      if (body === undefined) {
+        return jsonResponse(fixture("error-not-found.json"), 404);
+      }
       return jsonResponse(body);
     }
     if (url.includes("/api/get")) {
       const status = options.exactStatus ?? 200;
-      if (status !== 200) return jsonResponse(fixture("error-not-found.json"), status);
+      if (status !== 200) {
+        return jsonResponse(fixture("error-not-found.json"), status);
+      }
       return jsonResponse(options.exact ?? fixture("track-with-both.json"));
     }
     throw new Error(`unexpected url in test: ${url}`);
@@ -106,10 +116,12 @@ export function fixtureRouter(
 export function lyricBodies(rows: RawRow[]): string[] {
   const out: string[] = [];
   for (const row of rows) {
-    if (typeof row.plainLyrics === "string" && row.plainLyrics.length > 0)
+    if (typeof row.plainLyrics === "string" && row.plainLyrics.length > 0) {
       out.push(row.plainLyrics);
-    if (typeof row.syncedLyrics === "string" && row.syncedLyrics.length > 0)
+    }
+    if (typeof row.syncedLyrics === "string" && row.syncedLyrics.length > 0) {
       out.push(row.syncedLyrics);
+    }
   }
   return out;
 }

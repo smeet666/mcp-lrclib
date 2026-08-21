@@ -137,7 +137,9 @@ describe("RateLimiter", () => {
 
     it("stops doubling at the cap", () => {
       const limiter = new RateLimiter({ minIntervalMs: 500, maxIntervalMs: 2000 });
-      for (let i = 0; i < 10; i += 1) limiter.penalize();
+      for (let i = 0; i < 10; i += 1) {
+        limiter.penalize();
+      }
       expect(limiter.currentIntervalMs).toBe(2000);
     });
 
@@ -148,13 +150,17 @@ describe("RateLimiter", () => {
       const penalized = limiter.currentIntervalMs;
       limiter.relax();
       expect(limiter.currentIntervalMs).toBeLessThan(penalized);
-      for (let i = 0; i < 10; i += 1) limiter.relax();
+      for (let i = 0; i < 10; i += 1) {
+        limiter.relax();
+      }
       expect(limiter.currentIntervalMs).toBe(500);
     });
 
     it("never relaxes below the configured base", () => {
       const limiter = new RateLimiter({ minIntervalMs: 500 });
-      for (let i = 0; i < 10; i += 1) limiter.relax();
+      for (let i = 0; i < 10; i += 1) {
+        limiter.relax();
+      }
       expect(limiter.currentIntervalMs).toBe(500);
     });
 
@@ -194,7 +200,9 @@ describe("RateLimiter", () => {
     ]);
     await vi.advanceTimersByTimeAsync(0);
     const stamps = await all;
-    for (const stamp of stamps) expect(stamp - started).toBe(0);
+    for (const stamp of stamps) {
+      expect(stamp - started).toBe(0);
+    }
   });
 
   it("clamps a negative interval to zero instead of misbehaving", async () => {

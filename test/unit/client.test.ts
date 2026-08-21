@@ -193,7 +193,9 @@ describe("error mapping", () => {
       (_url, init) =>
         new Promise<Response>((_resolve, reject) => {
           const signal = init?.signal;
-          if (!signal) return;
+          if (!signal) {
+            return;
+          }
           signal.addEventListener("abort", () => {
             reject(new DOMException("aborted", "AbortError"));
           });
@@ -209,7 +211,9 @@ describe("error mapping", () => {
     let calls = 0;
     const stub = makeFetch(() => {
       calls += 1;
-      if (calls <= 2) return new Response("boom", { status: 503 });
+      if (calls <= 2) {
+        return new Response("boom", { status: 503 });
+      }
       return jsonResponse([]);
     });
     const { data } = await clientWith(

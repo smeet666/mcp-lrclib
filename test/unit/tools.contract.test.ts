@@ -92,7 +92,9 @@ describe("search_tracks", () => {
     for (const body of lyricBodies(searchRows)) {
       const lines = body.split("\n");
       for (const line of lines) {
-        if (line.trim().length > 8) expect(serialized).not.toContain(line.trim());
+        if (line.trim().length > 8) {
+          expect(serialized).not.toContain(line.trim());
+        }
       }
       expect(serialized).not.toContain(body.slice(0, 30));
     }
@@ -290,7 +292,9 @@ describe("get_lyrics", () => {
     // Every timed line must come from the slice that was actually returned.
     const returned = shortBody.synced_lyrics as string;
     for (const line of shortLines as { text: string }[]) {
-      if (line.text !== "") expect(returned).toContain(line.text);
+      if (line.text !== "") {
+        expect(returned).toContain(line.text);
+      }
     }
   });
 
@@ -308,7 +312,9 @@ describe("get_lyrics", () => {
         offset,
       });
       const body = page.structuredContent as Record<string, unknown>;
-      for (const line of body.synced_lines as { text: string }[]) collected.push(line.text);
+      for (const line of body.synced_lines as { text: string }[]) {
+        collected.push(line.text);
+      }
       offset = body.next_offset as number | null;
     }
 
@@ -572,7 +578,9 @@ describe("the server as a whole", () => {
     const methods: string[] = [];
     const stub = makeFetch((url, init) => {
       methods.push((init?.method ?? "GET").toUpperCase());
-      if (url.includes("/api/search")) return jsonResponse(searchRows);
+      if (url.includes("/api/search")) {
+        return jsonResponse(searchRows);
+      }
       return jsonResponse(fixture("track-with-both.json"));
     });
     const client = await connect(stub.impl);

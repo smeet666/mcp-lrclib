@@ -94,13 +94,17 @@ export function toToolError(error: unknown): ToolResult {
       : new LrclibError("network_error", error instanceof Error ? error.message : String(error));
 
   const lines = [`[${known.code}] ${known.message}`];
-  if (known.details.hint) lines.push(`Hint: ${known.details.hint}`);
+  if (known.details.hint) {
+    lines.push(`Hint: ${known.details.hint}`);
+  }
 
   return { content: [{ type: "text", text: lines.join("\n") }], isError: true };
 }
 
 export function truncate(text: string, maxChars: number): string {
-  if (text.length <= maxChars) return text;
+  if (text.length <= maxChars) {
+    return text;
+  }
   return `${text.slice(0, maxChars - 1).trimEnd()}…`;
 }
 

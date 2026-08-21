@@ -107,7 +107,9 @@ describe("TtlLruCache", () => {
 
     it("never exceeds the capacity under sustained writes", () => {
       const cache = new TtlLruCache<number>(3, 60_000);
-      for (let i = 0; i < 50; i += 1) cache.set(`k${i}`, i);
+      for (let i = 0; i < 50; i += 1) {
+        cache.set(`k${i}`, i);
+      }
       expect(cache.size).toBe(3);
       expect(cache.get("k49")).toBe(49);
       expect(cache.get("k0")).toBeUndefined();
