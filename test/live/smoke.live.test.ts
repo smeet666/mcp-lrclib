@@ -72,7 +72,7 @@ describe.runIf(enabled)("live LRCLIB", () => {
 
   it("still returns parseable synced lyrics", async () => {
     const search = await client.search({ q: "nino ferrer le sud" });
-    const withSynced = search.data.find((track) => track.hasSyncedLyrics)!;
+    const withSynced = search.data.find((row) => row.hasSyncedLyrics)!;
     const track = await client.getById(withSynced.id);
 
     expect(track.data.id).toBe(withSynced.id);

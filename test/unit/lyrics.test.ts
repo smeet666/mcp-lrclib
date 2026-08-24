@@ -114,7 +114,8 @@ describe("sliceAtLineBoundary", () => {
         parts.push(slice.text);
         expect(slice.text.length).toBeLessThanOrEqual(maxChars);
         offset = slice.nextOffset;
-        expect(++guard).toBeLessThan(100);
+        guard += 1;
+        expect(guard).toBeLessThan(100);
       }
       expect(parts.join("").replace(/\n/g, "")).toBe(text.replace(/\n/g, ""));
       expect(parts.some((part) => part === "")).toBe(false);
@@ -142,7 +143,8 @@ describe("sliceAtLineBoundary", () => {
       );
       out += slice.text;
       offset = slice.nextOffset;
-      expect(++guard).toBeLessThan(100);
+      guard += 1;
+      expect(guard).toBeLessThan(100);
     }
     expect(out).toBe(long);
   });
@@ -174,7 +176,8 @@ describe("sliceAtLineBoundary", () => {
       );
       pieces.push(slice.text);
       cursor = slice.nextOffset;
-      expect(++guard).toBeLessThan(200);
+      guard += 1;
+      expect(guard).toBeLessThan(200);
     }
     expect(pieces.length).toBeGreaterThan(1);
     const rejoined = pieces.join("") === plain ? pieces.join("") : pieces.join("\n");

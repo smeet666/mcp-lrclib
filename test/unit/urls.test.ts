@@ -23,7 +23,7 @@ describe("buildSearchUrl", () => {
   });
 
   it("sends the free-text query as q", () => {
-    expect(params(buildSearchUrl({ q: "born to run" }).toString()).get("q")).toBe("born to run");
+    expect(params(buildSearchUrl({ q: "born to run" })).get("q")).toBe("born to run");
   });
 
   it("drops the structured fields when q is given", () => {
