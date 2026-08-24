@@ -149,9 +149,7 @@ describe("search_tracks", () => {
       has_plain_lyrics: true,
       has_synced_lyrics: true,
     });
-    expect(String((structured.results[0] as { source_url: string }).source_url)).toContain(
-      "lrclib.net",
-    );
+    expect((structured.results[0] as { source_url: string }).source_url).toContain("lrclib.net");
   });
 
   it("returns ten results by default and reports how many exist", async () => {
