@@ -8,6 +8,7 @@
  * `toTrackMeta` and never through `toTrackWithLyrics`.
  */
 
+import process from "node:process";
 import { malformedResponse } from "../errors.js";
 import type { TrackMeta, TrackWithLyrics } from "../types.js";
 

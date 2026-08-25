@@ -31,7 +31,7 @@ function allStrings(value: unknown, out: string[] = []): string[] {
 describe("toTrackMeta", () => {
   it("maps the LRCLIB fields onto the domain names", () => {
     expect(toTrackMeta(richRow, URL_UNDER_TEST)).toEqual({
-      id: 35670801,
+      id: 35_670_801,
       trackName: "Placeholder Track 1",
       artistName: "Placeholder Artist 1",
       albumName: "Placeholder Album 1",
@@ -178,7 +178,7 @@ describe("toTrackWithLyrics", () => {
     expect(track.plainLyrics).toBe(richRow.plainLyrics);
     expect(track.syncedLyrics).toBe(richRow.syncedLyrics);
     expect(track).toMatchObject({
-      id: 35670801,
+      id: 35_670_801,
       durationSeconds: 183,
       hasPlainLyrics: true,
       hasSyncedLyrics: true,
@@ -237,7 +237,7 @@ describe("toSearchResults", () => {
     const rows = fixture<RawRow[]>("search-with-broken-row.json");
     const results = toSearchResults(rows, URL_UNDER_TEST);
     expect(results).toHaveLength(2);
-    expect(results.map((row) => row.id)).toEqual([35670801, 35670802]);
+    expect(results.map((row) => row.id)).toEqual([35_670_801, 35_670_802]);
   });
 
   it("skips non-object entries", () => {

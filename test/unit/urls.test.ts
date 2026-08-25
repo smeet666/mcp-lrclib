@@ -127,7 +127,7 @@ describe("buildGetUrl", () => {
 
 describe("buildGetByIdUrl", () => {
   it("puts the id in the path", () => {
-    expect(buildGetByIdUrl(35670801)).toBe(`${API_BASE}/get/35670801`);
+    expect(buildGetByIdUrl(35_670_801)).toBe(`${API_BASE}/get/35670801`);
   });
 
   it("does not add a query string", () => {
@@ -137,7 +137,7 @@ describe("buildGetByIdUrl", () => {
 
 describe("trackPageUrl", () => {
   it("returns an absolute https lrclib.net URL carrying the id", () => {
-    const url = trackPageUrl(35670801);
+    const url = trackPageUrl(35_670_801);
     expect(() => new URL(url)).not.toThrow();
     expect(new URL(url).protocol).toBe("https:");
     expect(new URL(url).hostname).toBe("lrclib.net");

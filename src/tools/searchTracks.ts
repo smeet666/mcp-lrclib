@@ -70,7 +70,7 @@ export async function runSearchTracks(
     const artistName = args.artist_name?.trim();
     const albumName = args.album_name?.trim();
 
-    if (!query && !trackName && !artistName && !albumName) {
+    if (!(query || trackName || artistName || albumName)) {
       throw invalidInput(
         "Provide either 'query' or at least one of 'track_name' and 'artist_name'.",
         'Free text works well for a first look: query="nino ferrer le sud".',

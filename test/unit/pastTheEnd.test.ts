@@ -12,7 +12,7 @@ import { runGetLyrics } from "../../src/tools/getLyrics.js";
 import type { LrclibClient } from "../../src/lrclib/client.js";
 
 const TRACK = {
-  id: 15833,
+  id: 15_833,
   trackName: "A Track",
   artistName: "An Artist",
   albumName: "An Album",
@@ -31,7 +31,7 @@ const client = (): LrclibClient =>
 
 const call = (args: Record<string, unknown>) =>
   runGetLyrics(client(), {
-    id: 15833,
+    id: 15_833,
     format: "plain",
     max_chars: 4000,
     offset: 0,

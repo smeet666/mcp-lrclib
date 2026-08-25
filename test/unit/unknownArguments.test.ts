@@ -22,8 +22,8 @@ const logger = createLogger("silent");
 /** One valid call per tool, so a refusal is never mistaken for a broken tool. */
 const CALLS: [string, Record<string, unknown>][] = [
   ["search_tracks", { query: "placeholder" }],
-  ["get_lyrics", { id: 35670801 }],
-  ["get_track", { id: 35670801 }],
+  ["get_lyrics", { id: 35_670_801 }],
+  ["get_track", { id: 35_670_801 }],
 ];
 
 async function connect(): Promise<Client> {
@@ -93,13 +93,13 @@ describe("an argument no tool declares", () => {
     const misspelt = await call(client, "search_tracks", { query: "placeholder", limt: 3 });
     expect(misspelt.text).toContain("did you mean 'limit'");
 
-    const shortened = await call(client, "get_lyrics", { id: 35670801, duration: 210 });
+    const shortened = await call(client, "get_lyrics", { id: 35_670_801, duration: 210 });
     expect(shortened.text).toContain("did you mean 'duration_seconds'");
   });
 
   it("lists the names the tool does take", async () => {
     const client = await connect();
-    const result = await call(client, "get_track", { identifier: 35670801 });
+    const result = await call(client, "get_track", { identifier: 35_670_801 });
     expect(result.text).toContain("This tool takes: id.");
   });
 
