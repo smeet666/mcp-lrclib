@@ -66,7 +66,7 @@ export function upstreamError(url: string, status: number, message?: string): Lr
     {
       url,
       status,
-      hint: status >= 500 ? "This is a problem on LRCLIB's side. Try again shortly." : undefined,
+      ...(status >= 500 ? { hint: "This is a problem on LRCLIB's side. Try again shortly." } : {}),
     },
   );
 }
