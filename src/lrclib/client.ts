@@ -33,6 +33,9 @@ export interface Outcome<T> {
   cached: boolean;
 }
 
+/** The names a User-Agent carries when it passes traffic off as a browser. */
+const BROWSER_IDENTITY = /mozilla\/|applewebkit|chrome\/|safari\/|gecko/i;
+
 /**
  * Apply the guarantees this project makes about its own traffic.
  *
@@ -46,7 +49,7 @@ export interface Outcome<T> {
  * identity appended so it stays attributable.
  */
 function withGuarantees(config: Config): Config {
-  const userAgent = /mozilla\/|applewebkit|chrome\/|safari\/|gecko/i.test(config.userAgent)
+  const userAgent = BROWSER_IDENTITY.test(config.userAgent)
     ? `${config.userAgent} ${DEFAULT_USER_AGENT}`
     : config.userAgent;
   return {
