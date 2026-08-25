@@ -11,6 +11,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import process from "node:process";
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "test", "fixtures");
 
@@ -31,7 +32,7 @@ function syncedLyrics(n) {
 
 function track(n, overrides = {}) {
   return {
-    id: 35670800 + n,
+    id: 35_670_800 + n,
     name: `Placeholder Track ${n}`,
     trackName: `Placeholder Track ${n}`,
     artistName: `Placeholder Artist ${n % 3}`,

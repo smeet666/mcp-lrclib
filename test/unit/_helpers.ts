@@ -46,7 +46,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
   return {
     userAgent: "mcp-lrclib-test",
     minIntervalMs: 0,
-    timeoutMs: 1_000,
+    timeoutMs: 1000,
     maxRetries: 0,
     cacheTtlMs: 0,
     cacheMaxEntries: 0,

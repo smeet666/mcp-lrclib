@@ -87,7 +87,7 @@ function answerCarryingNoWords(
     );
   }
 
-  if (!track.plainLyrics && !track.syncedLyrics) {
+  if (!(track.plainLyrics || track.syncedLyrics)) {
     return ok(
       { ...base, status: "no_lyrics" as const, notes },
       `${attribution}\nLRCLIB has a record for this track but no lyrics on file.`,
@@ -145,7 +145,7 @@ export const getLyricsInput = strictInput({
     .number()
     .int()
     .min(200)
-    .max(20000)
+    .max(20_000)
     .default(6000)
     .describe("Maximum characters of lyrics text to return in this call."),
   offset: z
@@ -322,7 +322,7 @@ async function resolveTrack(
     return { track: data, cached };
   }
 
-  if (!args.artist_name || !args.track_name) {
+  if (!(args.artist_name && args.track_name)) {
     throw invalidInput(
       "Provide either 'id', or both 'artist_name' and 'track_name'.",
       "Ids come from search_tracks and avoid the exact-spelling requirement entirely.",

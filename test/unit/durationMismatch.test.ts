@@ -14,7 +14,7 @@ import type { LrclibClient } from "../../src/lrclib/client.js";
 import { LrclibError } from "../../src/errors.js";
 
 const TRACK = {
-  id: 35670834,
+  id: 35_670_834,
   trackName: "Le sud",
   artistName: "Nino Ferrer",
   albumName: "Nino Ferrer",
@@ -64,7 +64,7 @@ describe("a duration that matches no release of an existing track", () => {
     const result: any = await call(client, 30);
 
     expect(result.isError, "the track exists, and a hint about it does not").toBeFalsy();
-    expect(result.structuredContent.track.id).toBe(35670834);
+    expect(result.structuredContent.track.id).toBe(35_670_834);
   });
 
   it("asks again without the duration rather than giving up on the first refusal", async () => {

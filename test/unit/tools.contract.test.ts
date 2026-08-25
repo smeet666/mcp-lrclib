@@ -140,7 +140,7 @@ describe("search_tracks", () => {
       "track_name",
     ]);
     expect(structured.results[0]).toMatchObject({
-      id: 35670801,
+      id: 35_670_801,
       track_name: "Placeholder Track 1",
       artist_name: "Placeholder Artist 1",
       album_name: "Placeholder Album 1",
@@ -239,7 +239,7 @@ describe("get_lyrics", () => {
     expect(structured.attribution).toBeTruthy();
     expect(structured.source).toBeTruthy();
     expect(Array.isArray(structured.notes)).toBe(true);
-    expect(structured.track).toMatchObject({ id: 35670801 });
+    expect(structured.track).toMatchObject({ id: 35_670_801 });
   });
 
   it("returns the LRC block and the parsed lines when asked for synced", async () => {
@@ -355,7 +355,7 @@ describe("get_lyrics", () => {
   it("fetches by id when one is given", async () => {
     const stub = fixtureRouter({ byId: { "35670801": both } });
     const client = await connect(stub.impl);
-    const result = await call(client, "get_lyrics", { id: 35670801 });
+    const result = await call(client, "get_lyrics", { id: 35_670_801 });
     expect(result.isError ?? false).toBe(false);
     expect(new URL(stub.calls[0] as string).pathname).toBe("/api/get/35670801");
   });
@@ -529,12 +529,12 @@ describe("get_track", () => {
   it("returns metadata with no lyrics and a formatted duration", async () => {
     const both = fixture<RawRow>("track-with-both.json");
     const client = await connect(fixtureRouter({ byId: { "35670801": both } }).impl);
-    const result = await call(client, "get_track", { id: 35670801 });
+    const result = await call(client, "get_track", { id: 35_670_801 });
     expect(result.isError ?? false).toBe(false);
     const structured = result.structuredContent as Record<string, unknown>;
     expect(structured.duration_formatted).toBe("3:03");
     expect(structured.track).toMatchObject({
-      id: 35670801,
+      id: 35_670_801,
       has_plain_lyrics: true,
       has_synced_lyrics: true,
     });
@@ -584,7 +584,7 @@ describe("the server as a whole", () => {
     const client = await connect(stub.impl);
     await call(client, "search_tracks", { query: "placeholder" });
     await call(client, "get_lyrics", { artist_name: "a", track_name: "b" });
-    await call(client, "get_track", { id: 35670801 });
+    await call(client, "get_track", { id: 35_670_801 });
     expect([...new Set(methods)]).toEqual(["GET"]);
   });
 });

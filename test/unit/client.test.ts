@@ -93,7 +93,7 @@ describe("LrclibClient.get", () => {
     });
     expect(data.plainLyrics).toBe(track.plainLyrics);
     expect(data.syncedLyrics).toBe(track.syncedLyrics);
-    expect(data.id).toBe(35670801);
+    expect(data.id).toBe(35_670_801);
   });
 
   it("passes album and duration through to the endpoint", async () => {
@@ -143,7 +143,7 @@ describe("LrclibClient.get", () => {
 describe("LrclibClient.getById", () => {
   it("fetches by id and returns the lyrics", async () => {
     const stub = makeFetch(() => jsonResponse(fixture("track-plain-only.json")));
-    const { data } = await clientWith(stub.impl).getById(35670802);
+    const { data } = await clientWith(stub.impl).getById(35_670_802);
     expect(new URL(stub.calls[0] as string).pathname).toBe("/api/get/35670802");
     expect(data.hasPlainLyrics).toBe(true);
     expect(data.hasSyncedLyrics).toBe(false);
@@ -264,7 +264,7 @@ describe("caching", () => {
   it("caches a lookup by id separately from a lookup by name", async () => {
     const stub = makeFetch(() => jsonResponse(fixture("track-with-both.json")));
     const client = clientWith(stub.impl, cachedConfig);
-    await client.getById(35670801);
+    await client.getById(35_670_801);
     const byName = await client.get({
       artistName: "Placeholder Artist 1",
       trackName: "Placeholder Track 1",
@@ -282,9 +282,9 @@ describe("caching", () => {
         : jsonResponse(fixture("track-with-both.json"));
     });
     const client = clientWith(stub.impl, cachedConfig);
-    await expectLrclibError(client.getById(35670801), "not_found");
-    const retry = await client.getById(35670801);
-    expect(retry.data.id).toBe(35670801);
+    await expectLrclibError(client.getById(35_670_801), "not_found");
+    const retry = await client.getById(35_670_801);
+    expect(retry.data.id).toBe(35_670_801);
     expect(calls).toBe(2);
   });
 

@@ -30,7 +30,7 @@ export function parseLrc(lrc: string): SyncedLine[] {
       const minutes = Number(match[1]);
       const seconds = Number(match[2]);
       const fraction = match[3] ? Number(`0.${match[3]}`) : 0;
-      if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+      if (!(Number.isFinite(minutes) && Number.isFinite(seconds))) {
         continue;
       }
       stamps.push(minutes * 60 + seconds + fraction);
