@@ -43,6 +43,7 @@ const ENGLISH_SECTIONS = [
   "## Errors",
   "## As a library",
   "## Pacing and attribution",
+  "## Privacy",
   "## Development",
   "## Contributing",
   "## License",
@@ -58,6 +59,7 @@ const FRENCH_SECTIONS = [
   "## Erreurs",
   "## Comme bibliothèque",
   "## Rythme et attribution",
+  "## Confidentialité",
   "## Développement",
   "## Contribuer",
   "## Licence",
@@ -73,6 +75,14 @@ const REFUSED_WORDING: [RegExp, string][] = [
   [/\bn'est pas seulement\b/i, "'n'est pas seulement'"],
   [/\bnon pas\b/i, "'non pas'"],
   [/\bbut rather\b/i, "'but rather'"],
+  [
+    /\bne (rend|donne|renvoie|fait|dit|porte|compte) pas [^,.]{0,40}, (il|elle|ils|elles)\b/i,
+    "a negation set up to carry an affirmation",
+  ],
+  [
+    /\b(returns|gives|carries|says|holds|counts) no [^,.]{0,40}, it\b/i,
+    "a negation set up to carry an affirmation",
+  ],
   [/\bno longer\b/i, "a comparison with a past state"],
   [/\bpreviously\b/i, "a comparison with a past state"],
   [/\bdésormais\b/i, "a comparison with a past state"],
@@ -262,6 +272,10 @@ describe("the settings", () => {
     for (const row of rows) {
       const name = backticked(row[0] ?? "");
       const announced = backticked(row[1] ?? "");
+      // A default the table states in prose, or as a dash, is not a value to set.
+      if (!(row[1] ?? "").includes("`")) {
+        continue;
+      }
       if (name === `${ENV_PREFIX}USER_AGENT`) {
         expect(untouched.userAgent).toBe(DEFAULT_USER_AGENT);
         continue;

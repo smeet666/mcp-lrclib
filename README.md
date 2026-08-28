@@ -233,6 +233,14 @@ rights over them, ships no database of them, writes nothing to disk, and
 contributes nothing back to LRCLIB. This MCP server is an unofficial project,
 with no affiliation to LRCLIB.
 
+## Privacy
+
+This server collects nothing about you and sends nothing to its author. It runs
+on your machine, contacts `lrclib.net` and nothing else, holds its answers in memory
+while it runs, and writes nothing to disk.
+[PRIVACY.md](PRIVACY.md) states what a request carries and which settings change
+any of it.
+
 ## Development
 
 ```bash
@@ -490,6 +498,13 @@ Les paroles sont l'œuvre de leurs auteurs et de leurs éditeurs. Ce projet ne
 revendique aucun droit dessus, n'embarque aucune base de paroles, n'écrit rien
 sur le disque et ne contribue rien à LRCLIB. Ce MCP est un projet non officiel,
 sans affiliation à LRCLIB.
+
+## Confidentialité
+
+Ce serveur ne collecte rien sur vous et n'envoie rien à son auteur. Il tourne sur
+votre machine, ne joint que `lrclib.net`, garde ses réponses en mémoire le temps qu'il
+tourne, et n'écrit rien sur le disque. [PRIVACY.md](PRIVACY.md) dit ce qu'une
+requête emporte et quels réglages changent cela.
 
 ## Développement
 
