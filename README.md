@@ -230,8 +230,8 @@ and `get_lyrics` carries `attribution`, the three of them written as one line.
 
 Song lyrics are the work of their authors and publishers. This project claims no
 rights over them, ships no database of them, writes nothing to disk, and
-contributes nothing back to LRCLIB. It is an unofficial project, with no
-affiliation to LRCLIB.
+contributes nothing back to LRCLIB. This MCP server is an unofficial project,
+with no affiliation to LRCLIB.
 
 ## Development
 
@@ -488,8 +488,8 @@ Chaque résultat porte l'artiste, le titre et l'adresse de sa page LRCLIB, et
 
 Les paroles sont l'œuvre de leurs auteurs et de leurs éditeurs. Ce projet ne
 revendique aucun droit dessus, n'embarque aucune base de paroles, n'écrit rien
-sur le disque et ne contribue rien à LRCLIB. C'est un projet non officiel, sans
-affiliation à LRCLIB.
+sur le disque et ne contribue rien à LRCLIB. Ce MCP est un projet non officiel,
+sans affiliation à LRCLIB.
 
 ## Développement
 
