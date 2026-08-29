@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "mcp-lrclib",
   "display_name": "LRCLIB",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "MCP server for LRCLIB. Search tracks and fetch plain or time-synced (LRC) lyrics. No API key required.",
   "long_description": "Search LRCLIB for a track and read its lyrics, plain or time-synced (LRC). No API key, no account.",
   "author": {
