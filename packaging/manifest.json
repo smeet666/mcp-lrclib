@@ -41,15 +41,117 @@
   "tools": [
     {
       "name": "search_tracks",
-      "description": "Find a track by title, artist or album."
-    },
-    {
-      "name": "get_track",
-      "description": "Read one track's metadata by id."
+      "description": "Find a track by title, artist or album.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "description": "Free-text search, for example 'nino ferrer le sud'. Use this or the fields below.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "track_name": {
+            "description": "Song title, for a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "artist_name": {
+            "description": "Artist name, for a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "album_name": {
+            "description": "Album name, to narrow a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "default": 10,
+            "description": "Maximum tracks to return. LRCLIB returns up to 20 per search.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      }
     },
     {
       "name": "get_lyrics",
-      "description": "Read a track's lyrics, plain or time-synced."
+      "description": "Read a track's lyrics, plain or time-synced.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "LRCLIB track id, as returned by search_tracks. Preferred over the name fields.",
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "artist_name": {
+            "description": "Artist name, matched exactly by LRCLIB. Required when 'id' is absent.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "track_name": {
+            "description": "Song title, matched exactly by LRCLIB. Required when 'id' is absent.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "album_name": {
+            "description": "Album name, to pick between releases.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "duration_seconds": {
+            "description": "Track duration, to pick between versions of differing length.",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "format": {
+            "default": "plain",
+            "description": "'plain' returns the text only. 'synced' returns LRC text plus a parsed list of timestamped lines. 'both' returns each of them.",
+            "type": "string",
+            "enum": ["plain", "synced", "both"]
+          },
+          "max_chars": {
+            "default": 6000,
+            "description": "Maximum characters of lyrics text to return in this call.",
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 20000
+          },
+          "offset": {
+            "default": 0,
+            "description": "Character offset to resume from, for lyrics longer than max_chars.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_track",
+      "description": "Read one track's metadata by id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "LRCLIB track id, as returned by search_tracks."
+          }
+        },
+        "required": ["id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      }
     }
   ],
   "compatibility": {
