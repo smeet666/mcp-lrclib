@@ -1,0 +1,533 @@
+{
+  "author": "Damien Bouissou",
+  "authorUrl": "https://github.com/smeet666",
+  "description": "MCP server for LRCLIB. Search tracks and fetch plain or time-synced (LRC) lyrics. No API key required.",
+  "homepage": "https://github.com/smeet666/mcp-lrclib#readme",
+  "identifier": "smeet666-mcp-lrclib",
+  "name": "mcp-lrclib",
+  "prompts": [],
+  "resources": [],
+  "tags": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "mcp-server",
+    "lrclib",
+    "lyrics",
+    "synced-lyrics",
+    "lrc",
+    "karaoke",
+    "music",
+    "claude",
+    "cursor",
+    "llm",
+    "ai",
+    "no-api-key"
+  ],
+  "tools": [
+    {
+      "name": "search_tracks",
+      "title": "Search tracks",
+      "description": "Search LRCLIB for tracks by title, artist or album, and get the id needed to fetch lyrics with get_lyrics. Give either 'query' as free text, or 'track_name' and 'artist_name' separately for a narrower search. Results carry metadata only: title, artist, album, duration, and whether plain and time-synced lyrics exist. Use 'duration_seconds' and 'album_name' in the results to tell releases and re-recordings of the same song apart, and 'has_synced_lyrics' to know whether karaoke-style timed lyrics are available before fetching them. LRCLIB indexes tracks by their metadata, so it cannot search for a word appearing inside the lyrics.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "description": "Free-text search, for example 'nino ferrer le sud'. Use this or the fields below.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "track_name": {
+            "description": "Song title, for a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "artist_name": {
+            "description": "Artist name, for a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "album_name": {
+            "description": "Album name, to narrow a structured search.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "default": 10,
+            "description": "Maximum tracks to return. LRCLIB returns up to 20 per search.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991,
+                  "description": "LRCLIB track id. Pass this to get_lyrics or get_track."
+                },
+                "track_name": {
+                  "type": "string"
+                },
+                "artist_name": {
+                  "type": "string"
+                },
+                "album_name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "duration_seconds": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "instrumental": {
+                  "type": "boolean",
+                  "description": "True when LRCLIB marks the track as having no vocals."
+                },
+                "has_plain_lyrics": {
+                  "type": "boolean"
+                },
+                "has_synced_lyrics": {
+                  "type": "boolean",
+                  "description": "True when time-synced (LRC) lyrics are available for this track."
+                },
+                "source_url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "track_name",
+                "artist_name",
+                "album_name",
+                "duration_seconds",
+                "instrumental",
+                "has_plain_lyrics",
+                "has_synced_lyrics",
+                "source_url"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "result_count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "total_available": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Tracks LRCLIB returned before applying 'limit'."
+          },
+          "source": {
+            "type": "string",
+            "const": "lrclib.net"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["results", "result_count", "total_available", "source", "notes"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_lyrics",
+      "title": "Get lyrics",
+      "description": "Fetch the lyrics of one track from LRCLIB, given the id returned by search_tracks, or an exact artist and title. Set 'format' to \"synced\" for karaoke-style lyrics with a timestamp on every line, \"plain\" for the text alone, or \"both\". Check 'has_synced_lyrics' in the search results first: not every track has timed lyrics. Lyrics can be long, so the text is truncated by default: check 'truncated' and call again with 'offset' set to 'next_offset' to continue reading. Instrumental tracks come back with status \"instrumental\" and no text, which is a valid answer, so do not retry them. Always cite 'attribution' when showing lyrics to a user.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "LRCLIB track id, as returned by search_tracks. Preferred over the name fields.",
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "artist_name": {
+            "description": "Artist name, matched exactly by LRCLIB. Required when 'id' is absent.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "track_name": {
+            "description": "Song title, matched exactly by LRCLIB. Required when 'id' is absent.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "album_name": {
+            "description": "Album name, to pick between releases.",
+            "type": "string",
+            "maxLength": 200
+          },
+          "duration_seconds": {
+            "description": "Track duration, to pick between versions of differing length.",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "format": {
+            "default": "plain",
+            "description": "'plain' returns the text only. 'synced' returns LRC text plus a parsed list of timestamped lines. 'both' returns each of them.",
+            "type": "string",
+            "enum": ["plain", "synced", "both"]
+          },
+          "max_chars": {
+            "default": 6000,
+            "description": "Maximum characters of lyrics text to return in this call.",
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 20000
+          },
+          "offset": {
+            "default": 0,
+            "description": "Character offset to resume from, for lyrics longer than max_chars.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "instrumental", "no_lyrics"]
+          },
+          "track": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "track_name": {
+                "type": "string"
+              },
+              "artist_name": {
+                "type": "string"
+              },
+              "album_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "duration_seconds": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "track_name",
+              "artist_name",
+              "album_name",
+              "duration_seconds",
+              "source_url"
+            ],
+            "additionalProperties": false
+          },
+          "plain_lyrics": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "synced_lyrics": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Raw LRC text, one timestamp per line."
+          },
+          "synced_lines": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "time_seconds": {
+                      "type": "number"
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["time_seconds", "text"],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Parsed timestamped lines."
+          },
+          "synced_lines_truncated": {
+            "type": "boolean"
+          },
+          "paginated_form": {
+            "type": "string",
+            "enum": ["plain", "synced"],
+            "description": "Which body the character counts and the offset describe. Timed text carries its timestamps, so it is longer than the words alone."
+          },
+          "total_chars": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "returned_chars": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "const": "lrclib.net"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "track",
+          "plain_lyrics",
+          "synced_lyrics",
+          "synced_lines",
+          "synced_lines_truncated",
+          "paginated_form",
+          "total_chars",
+          "returned_chars",
+          "offset",
+          "next_offset",
+          "truncated",
+          "attribution",
+          "source",
+          "notes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "get_track",
+      "title": "Get track metadata",
+      "description": "Look up one LRCLIB track by its id and return its metadata without the lyrics: title, artist, album, duration, and whether plain and time-synced lyrics exist. Use this to confirm you have the right release or version before calling get_lyrics, or to check whether timed lyrics exist for a track id you already hold.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "LRCLIB track id, as returned by search_tracks."
+          }
+        },
+        "required": ["id"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "LRCLIB track id. Pass this to get_lyrics or get_track."
+              },
+              "track_name": {
+                "type": "string"
+              },
+              "artist_name": {
+                "type": "string"
+              },
+              "album_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "duration_seconds": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "instrumental": {
+                "type": "boolean",
+                "description": "True when LRCLIB marks the track as having no vocals."
+              },
+              "has_plain_lyrics": {
+                "type": "boolean"
+              },
+              "has_synced_lyrics": {
+                "type": "boolean",
+                "description": "True when time-synced (LRC) lyrics are available for this track."
+              },
+              "source_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "track_name",
+              "artist_name",
+              "album_name",
+              "duration_seconds",
+              "instrumental",
+              "has_plain_lyrics",
+              "has_synced_lyrics",
+              "source_url"
+            ],
+            "additionalProperties": false
+          },
+          "duration_formatted": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Duration as m:ss, when known."
+          },
+          "source": {
+            "type": "string",
+            "const": "lrclib.net"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["track", "duration_formatted", "source", "notes"],
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ],
+  "version": "2.0.1"
+}
