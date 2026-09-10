@@ -114,7 +114,7 @@ export function renderTrackList(tracks: TrackMetaOut[]): string {
     .map((track, index) => {
       const duration = formatDuration(track.duration_seconds);
       const parts = [
-        `${index + 1}. ${track.track_name} — ${track.artist_name}`,
+        `${index + 1}. ${track.track_name} · ${track.artist_name}`,
         track.album_name ? `[${track.album_name}]` : "",
         duration ? `(${duration})` : "",
         `· id: ${track.id}`,
@@ -127,5 +127,5 @@ export function renderTrackList(tracks: TrackMetaOut[]): string {
 }
 
 export function attributionFor(track: TrackMetaOut): string {
-  return `${track.track_name} — ${track.artist_name} via LRCLIB — ${track.source_url}`;
+  return `${track.track_name} · ${track.artist_name} via LRCLIB (${track.source_url})`;
 }

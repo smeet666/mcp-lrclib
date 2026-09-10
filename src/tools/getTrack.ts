@@ -62,7 +62,7 @@ export async function runGetTrack(client: LrclibClient, args: GetTrackArgs): Pro
           .join(" and ") || "no lyrics on file";
 
     const text = [
-      `${track.track_name} — ${track.artist_name}`,
+      `${track.track_name} · ${track.artist_name}`,
       track.album_name ? `Album: ${track.album_name}` : "",
       duration ? `Duration: ${duration}` : "",
       `Available: ${lyricsState}`,
