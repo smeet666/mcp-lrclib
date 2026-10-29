@@ -118,7 +118,7 @@ describe("sliceAtLineBoundary", () => {
         expect(guard).toBeLessThan(100);
       }
       expect(parts.join("").replace(/\n/g, "")).toBe(text.replace(/\n/g, ""));
-      expect(parts.some((part) => part === "")).toBe(false);
+      expect(parts.includes("")).toBe(false);
     }
   });
 

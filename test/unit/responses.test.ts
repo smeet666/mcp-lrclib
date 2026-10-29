@@ -46,7 +46,10 @@ describe("toTrackMeta", () => {
     it("exposes no key whose name mentions lyrics beyond the two booleans", () => {
       const meta = toTrackMeta(richRow, URL_UNDER_TEST) as unknown as Record<string, unknown>;
       const lyricKeys = Object.keys(meta).filter((key) => /lyric/i.test(key));
-      expect(lyricKeys.sort()).toEqual(["hasPlainLyrics", "hasSyncedLyrics"]);
+      expect(lyricKeys.sort((a, b) => Number(a > b) - Number(a < b))).toEqual([
+        "hasPlainLyrics",
+        "hasSyncedLyrics",
+      ]);
     });
 
     it("carries no lyric text anywhere in the returned value", () => {

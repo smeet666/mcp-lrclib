@@ -128,7 +128,9 @@ describe("search_tracks", () => {
     expect(structured.total_available).toBe(20);
     expect(structured.source).toBeTruthy();
     expect(Array.isArray(structured.notes)).toBe(true);
-    expect(Object.keys(structured.results[0] as object).sort()).toEqual([
+    expect(
+      Object.keys(structured.results[0] as object).sort((a, b) => Number(a > b) - Number(a < b)),
+    ).toEqual([
       "album_name",
       "artist_name",
       "duration_seconds",
