@@ -90,6 +90,6 @@ file for the first time should not have to know what it replaced.
 ## When LRCLIB changes
 
 The upstream is not a documented API. When it changes shape, the unit tests
-stay green because they run on fixtures, and the nightly live canary is what
-catches it. If you see a `parse_failure` in normal use, that is very likely
+stay green because they run on fixtures, and the live suite is what catches
+it. If you see a `parse_failure` in normal use, that is very likely
 what happened, and it is worth an issue with the arguments that triggered it.
