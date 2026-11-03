@@ -1,12 +1,12 @@
 /**
- * Live canary against the real LRCLIB API.
+ * Live suite against the real LRCLIB API.
  *
  * The unit tests run against generated JSON fixtures. They prove the client maps
  * a given response shape correctly, and they can never tell that LRCLIB renamed
  * a field or changed a status code: the day it does, every fixture test stays
  * green while the published server is broken for everyone. This file is the only
- * thing that catches that, so it runs on a schedule in CI and asserts each field
- * the client depends on, so a failure names what moved.
+ * thing that catches that, and it asserts each field the client depends on, so a
+ * failure names what moved.
  *
  * Excluded from the ordinary CI run: enable with LRCLIB_LIVE=1.
  */

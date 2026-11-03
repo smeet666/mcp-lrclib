@@ -252,8 +252,8 @@ npm run check
 ```
 
 Tests run against generated fixtures and make no network request. The live suite,
-`npm run test:live`, makes one request per route and runs nightly against the
-service itself.
+`LRCLIB_LIVE=1 npm run test:live`, makes one request per route against the
+service itself and runs by hand.
 
 ## Contributing
 
@@ -517,8 +517,8 @@ npm run check
 ```
 
 Les tests s'exécutent sur des fixtures engendrées et n'émettent aucune requête.
-La suite en direct, `npm run test:live`, émet une requête par route et tourne
-chaque nuit contre le service lui-même.
+La suite en direct, `LRCLIB_LIVE=1 npm run test:live`, émet une requête par
+route contre le service lui-même et se lance à la main.
 
 ## Contribuer
 
